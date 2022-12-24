@@ -39,9 +39,11 @@ if (ctx) {
                 pause();
                 var buf = readerEvent.target.result;
                 var sna = new Uint8Array(buf);
-                for (var i = 0; i< buf.byteLength; i++) zx.zxmem[i + 16384] = sna[i+27];
+                while (zx.emul_active) console.log("active");
+                for (var i = 0; i< buf.byteLength; i++) zx.zxmem[i + 16384] = sna[i + 27];
                 for (var i = 0; i <  27; i++) zx.sna[i] = sna[i];
                 zx.loadSNA48k();
+                ifile.value = '';
                 pause();
            }
         }
@@ -53,7 +55,8 @@ if (ctx) {
             zx.saveSNA48k();
             var buf = new ArrayBuffer(48*1024+27);
             var sna = new Uint8Array(buf);
-            for (var i = 0; i< buf.byteLength; i++) sna[i+27] = zx.zxmem[i + 16384];
+            while (zx.emul_active) console.log("active");
+            for (var i = 0; i< buf.byteLength; i++) sna[i + 27] = zx.zxmem[i + 16384];
             for (var i = 0; i <  27; i++) sna[i] = zx.sna[i];
             var blob = new Blob([sna], {type: "application/octet-stream"});
 //            console.log(blob);
@@ -105,7 +108,9 @@ if (ctx) {
         var str = 0;
         function go() {
             const start = performance.now();
+            zx.emul_active = 1;
             zx.emul();
+            zx.emul_active = 0;
             ctx.putImageData(zx.myImageData, 0, 0);
             const timeTaken = (performance.now() - start);
             html_fps.innerHTML = timeTaken;
@@ -232,30 +237,35 @@ if (ctx) {
                         zx.ZXKeyboard[2] |= (0x10);
                 break;
 
+            case "Numpad1":
             case "Digit1":
                     if (state)
                         zx.ZXKeyboard[3] &= (~0x1);
                     else
                         zx.ZXKeyboard[3] |= (0x1);
                 break;
+            case "Numpad2":
             case "Digit2":
                     if (state)
                         zx.ZXKeyboard[3] &= (~0x2);
                     else
                         zx.ZXKeyboard[3] |= (0x2);
                 break;
+            case "Numpad3":
             case "Digit3":
                     if (state)
                         zx.ZXKeyboard[3] &= (~0x4);
                     else
                         zx.ZXKeyboard[3] |= (0x4);
                 break;
+            case "Numpad4":
             case "Digit4":
                     if (state)
                         zx.ZXKeyboard[3] &= (~0x8);
                     else
                         zx.ZXKeyboard[3] |= (0x8);
                 break;
+            case "Numpad5":
             case "Digit5": //SDLK_5:
                     if (state)
                         zx.ZXKeyboard[3] &= (~0x10);
@@ -263,30 +273,35 @@ if (ctx) {
                         zx.ZXKeyboard[3] |= (0x10);
                 break;
 
+            case "Numpad0":
             case "Digit0": //SDLK_0:
                     if (state)
                         zx.ZXKeyboard[4] &= (~0x1);
                     else
                         zx.ZXKeyboard[4] |= (0x1);
                 break;
+            case "Numpad9":
             case "Digit9": //SDLK_9:
                     if (state)
                         zx.ZXKeyboard[4] &= (~0x2);
                     else
                         zx.ZXKeyboard[4] |= (0x2);
                 break;
+            case "Numpad8":
             case "Digit8": //SDLK_8:
                     if (state)
                         zx.ZXKeyboard[4] &= (~0x4);
                     else
                         zx.ZXKeyboard[4] |= (0x4);
                 break;
+            case "Numpad7":
             case "Digit7": //SDLK_7:
                     if (state)
                         zx.ZXKeyboard[4] &= (~0x8);
                     else
                         zx.ZXKeyboard[4] |= (0x8);
                 break;
+            case "Numpad6":
             case "Digit6": //SDLK_6:
                     if (state)
                         zx.ZXKeyboard[4] &= (~0x10);
@@ -349,6 +364,7 @@ if (ctx) {
                     else
                         zx.ZXKeyboard[6] |= (0x2);
                 break;
+            case "NumpadEnter":
             case "Enter":
                     if (state)
                         zx.ZXKeyboard[6] &= (~0x1);
@@ -435,6 +451,90 @@ if (ctx) {
                         zx.ZXKeyboard[0] |= (0x1);
                     }
                 break;
+            case "Semicolon":
+                    if (state) {
+                        zx.ZXKeyboard[5] &= (~0x2);
+                        zx.ZXKeyboard[7] &= (~0x2);
+                    } else {
+                        zx.ZXKeyboard[5] |= (0x2);
+                        zx.ZXKeyboard[7] |= (0x2);
+                    }
+                break;
+            case "Quote":
+                    if (state) {
+                        zx.ZXKeyboard[5] &= (~0x1);
+                        zx.ZXKeyboard[7] &= (~0x2);
+                    } else {
+                        zx.ZXKeyboard[5] |= (0x1);
+                        zx.ZXKeyboard[7] |= (0x2);
+                    }
+                break;
+            case "Equal":
+                    if (state) {
+                        zx.ZXKeyboard[6] &= (~0x2);
+                        zx.ZXKeyboard[7] &= (~0x2);
+                    } else {
+                        zx.ZXKeyboard[6] |= (0x2);
+                        zx.ZXKeyboard[7] |= (0x2);
+                    }
+                break;
+            case "NumpadSubtract":
+            case "Minus":
+                    if (state) {
+                        zx.ZXKeyboard[6] &= (~0x8);
+                        zx.ZXKeyboard[7] &= (~0x2);
+                    } else {
+                        zx.ZXKeyboard[6] |= (0x8);
+                        zx.ZXKeyboard[7] |= (0x2);
+                    }
+                break;
+            case "NumpadAdd":
+                    if (state) {
+                        zx.ZXKeyboard[6] &= (~0x4);
+                        zx.ZXKeyboard[7] &= (~0x2);
+                    } else {
+                        zx.ZXKeyboard[6] |= (0x4);
+                        zx.ZXKeyboard[7] |= (0x2);
+                    }
+                break;
+            case "NumpadMultiply":
+                    if (state) {
+                        zx.ZXKeyboard[7] &= (~0x10);
+                        zx.ZXKeyboard[7] &= (~0x2);
+                    } else {
+                        zx.ZXKeyboard[7] |= (0x10);
+                        zx.ZXKeyboard[7] |= (0x2);
+                    }
+                break;
+            case "NumpadDivide":
+            case "Slash":
+                    if (state) {
+                        zx.ZXKeyboard[0] &= (~0x10);
+                        zx.ZXKeyboard[7] &= (~0x2);
+                    } else {
+                        zx.ZXKeyboard[0] |= (0x10);
+                        zx.ZXKeyboard[7] |= (0x2);
+                    }
+                break;
+            case "Comma":
+                    if (state) {
+                        zx.ZXKeyboard[7] &= (~0x8);
+                        zx.ZXKeyboard[7] &= (~0x2);
+                    } else {
+                        zx.ZXKeyboard[7] |= (0x8);
+                        zx.ZXKeyboard[7] |= (0x2);
+                    }
+                break;
+            case "NumpadDecimal":
+            case "Period":
+                    if (state) {
+                        zx.ZXKeyboard[7] &= (~0x4);
+                        zx.ZXKeyboard[7] &= (~0x2);
+                    } else {
+                        zx.ZXKeyboard[7] |= (0x4);
+                        zx.ZXKeyboard[7] |= (0x2);
+                    }
+                break;
             };
         }
 
@@ -480,6 +580,7 @@ class TZX {
         this.kempston = new Uint32Array(this.buffer, ws.exports.kempston, 1);;
         this.loadROM();
         this.init();
+        this.emul_active = 0;
     }
 
     async loadSNA(sna) {
