@@ -143,8 +143,8 @@ if (ctx) {
             if (event.type == "keyup") state = 0;
             switch(event.code) {
             case "ShiftLeft":
-            case "ControlLeft":
-            case "AltLeft":
+//            case "ControlLeft":
+//            case "AltLeft":
                     if (state)
                         zx.ZXKeyboard[0] &= (~0x1);
                     else
@@ -379,8 +379,8 @@ if (ctx) {
                         zx.ZXKeyboard[7] |= (0x1);
                 break;
             case "ShiftRight": //SDLK_RSHIFT:
-            case "ControlRight": //SDLK_RSHIFT:
-            case "AltRight": //SDLK_RSHIFT:
+//            case "ControlRight": //SDLK_RSHIFT:
+//            case "AltRight": //SDLK_RSHIFT:
                     if (state)
                         zx.ZXKeyboard[7] &= (~0x2);
                     else
