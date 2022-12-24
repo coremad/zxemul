@@ -1,3 +1,5 @@
+document.addEventListener("DOMContentLoaded", () => {
+
 const interval = 25;
 const width  = 640;
 const height  = 480;
@@ -10,6 +12,7 @@ const html_fps = document.getElementById('fps');
 const pbutton = document.getElementById('pbutton');
 const cbutton = document.getElementById('cbutton');
 const rlbutton = document.getElementById('rlbutton');
+const ifile = document.getElementById('file-input');
 
 const ctx = canvas.getContext('2d');
 
@@ -20,14 +23,45 @@ if (ctx) {
       .then((response) => response.arrayBuffer())
       .then((bytes) => WebAssembly.instantiate(bytes))
       .then((results) => {
-        console.log(results.instance);
+//        console.log(results.instance);
         const zx = new TZX(results.instance, width, height);
         zx.init();
 
         pbutton.onclick = pause;
         cbutton.onclick = reset;
-//        lbutton.onclick = function(){pause(); zx.loadSNA("roms/dizzy_2.sna"); pause() };
-        rlbutton.onclick = function(){str = 0; debug.innerHTML = '';};
+
+        ifile.type = 'file';
+        ifile.onchange = e => {
+           var file = e.target.files[0];
+           var reader = new FileReader();
+           reader.readAsArrayBuffer(file);
+           reader.onload = readerEvent => {
+                pause();
+                var buf = readerEvent.target.result;
+                var sna = new Uint8Array(buf);
+                for (var i = 0; i< buf.byteLength; i++) zx.zxmem[i + 16384] = sna[i+27];
+                for (var i = 0; i <  27; i++) zx.sna[i] = sna[i];
+                zx.loadSNA48k();
+                pause();
+           }
+        }
+
+        lbutton.onclick = function() { ifile.click(); };
+
+        sbutton.onclick = function() {
+            pause();
+            zx.saveSNA48k();
+            var buf = new ArrayBuffer(48*1024+27);
+            var sna = new Uint8Array(buf);
+            for (var i = 0; i< buf.byteLength; i++) sna[i+27] = zx.zxmem[i + 16384];
+            for (var i = 0; i <  27; i++) sna[i] = zx.sna[i];
+            var blob = new Blob([sna], {type: "application/octet-stream"});
+//            console.log(blob);
+            saveAs(blob, "snapshot.sna");
+            pause();
+        };
+
+        rlbutton.onclick = function() { str = 0; debug.innerHTML = ''; };
 //        canvas.addEventListener('click', event => pick(event));
         window.addEventListener('keydown', event => checkKeys(event), false);
         window.addEventListener('keyup', event => checkKeys(event), false);
@@ -99,260 +133,263 @@ if (ctx) {
         }
 
         function checkKeys(event) {
-            console.log(event);
+//            console.log(event);
             var state = 1;
             if (event.type == "keyup") state = 0;
-            switch(event.keyCode) {
-            case 16:
+            switch(event.code) {
+            case "ShiftLeft":
+            case "ControlLeft":
+            case "AltLeft":
                     if (state)
                         zx.ZXKeyboard[0] &= (~0x1);
                     else
                         zx.ZXKeyboard[0] |= (0x1);
                 break;
-            case 90:
+            case "KeyZ":
                     if (state)
                         zx.ZXKeyboard[0] &= (~0x2);
                     else
                         zx.ZXKeyboard[0] |= (0x2);
                 break;
-            case 88:
+            case "KeyX":
                     if (state)
                         zx.ZXKeyboard[0] &= (~0x4);
                     else
                         zx.ZXKeyboard[0] |= (0x4);
                 break;
-            case 67:
+            case "KeyC":
                     if (state)
                         zx.ZXKeyboard[0] &= (~0x8);
                     else
                         zx.ZXKeyboard[0] |= (0x8);
                 break;
-            case 86:
+            case "KeyV":
                     if (state)
                         zx.ZXKeyboard[0] &= (~0x10);
                     else
                         zx.ZXKeyboard[0] |= (0x10);
                 break;
 
-            case 65:
+            case "KeyA":
                     if (state)
                         zx.ZXKeyboard[1] &= (~0x1);
                     else
                         zx.ZXKeyboard[1] |= (0x1);
                 break;
-            case 83:
+            case "KeyS":
                     if (state)
                         zx.ZXKeyboard[1] &= (~0x2);
                     else
                         zx.ZXKeyboard[1] |= (0x2);
                 break;
-            case 68:
+            case "KeyD":
                     if (state)
                         zx.ZXKeyboard[1] &= (~0x4);
                     else
                         zx.ZXKeyboard[1] |= (0x4);
                 break;
-            case 70:
+            case "KeyF":
                     if (state)
                         zx.ZXKeyboard[1] &= (~0x8);
                     else
                         zx.ZXKeyboard[1] |= (0x8);
                 break;
-            case 71:
+            case "KeyG":
                     if (state)
                         zx.ZXKeyboard[1] &= (~0x10);
                     else
                         zx.ZXKeyboard[1] |= (0x10);
                 break;
 
-            case 81:
+            case "KeyQ":
                     if (state)
                         zx.ZXKeyboard[2] &= (~0x1);
                     else
                         zx.ZXKeyboard[2] |= (0x1);
                 break;
-            case 87:
+            case "KeyW":
                     if (state)
                         zx.ZXKeyboard[2] &= (~0x2);
                     else
                         zx.ZXKeyboard[2] |= (0x2);
                 break;
-            case 69:
+            case "KeyE":
                     if (state)
                         zx.ZXKeyboard[2] &= (~0x4);
                     else
                         zx.ZXKeyboard[2] |= (0x4);
                 break;
-            case 82:
+            case "KeyR":
                     if (state)
                         zx.ZXKeyboard[2] &= (~0x8);
                     else
                         zx.ZXKeyboard[2] |= (0x8);
                 break;
-            case 84:
+            case "KeyT":
                     if (state)
                         zx.ZXKeyboard[2] &= (~0x10);
                     else
                         zx.ZXKeyboard[2] |= (0x10);
                 break;
 
-            case 49:
+            case "Digit1":
                     if (state)
                         zx.ZXKeyboard[3] &= (~0x1);
                     else
                         zx.ZXKeyboard[3] |= (0x1);
                 break;
-            case 50:
+            case "Digit2":
                     if (state)
                         zx.ZXKeyboard[3] &= (~0x2);
                     else
                         zx.ZXKeyboard[3] |= (0x2);
                 break;
-            case 51:
+            case "Digit3":
                     if (state)
                         zx.ZXKeyboard[3] &= (~0x4);
                     else
                         zx.ZXKeyboard[3] |= (0x4);
                 break;
-            case 52:
+            case "Digit4":
                     if (state)
                         zx.ZXKeyboard[3] &= (~0x8);
                     else
                         zx.ZXKeyboard[3] |= (0x8);
                 break;
-            case 53: //SDLK_5:
+            case "Digit5": //SDLK_5:
                     if (state)
                         zx.ZXKeyboard[3] &= (~0x10);
                     else
                         zx.ZXKeyboard[3] |= (0x10);
                 break;
 
-            case 48: //SDLK_0:
+            case "Digit0": //SDLK_0:
                     if (state)
                         zx.ZXKeyboard[4] &= (~0x1);
                     else
                         zx.ZXKeyboard[4] |= (0x1);
                 break;
-            case 57: //SDLK_9:
+            case "Digit9": //SDLK_9:
                     if (state)
                         zx.ZXKeyboard[4] &= (~0x2);
                     else
                         zx.ZXKeyboard[4] |= (0x2);
                 break;
-            case 56: //SDLK_8:
+            case "Digit8": //SDLK_8:
                     if (state)
                         zx.ZXKeyboard[4] &= (~0x4);
                     else
                         zx.ZXKeyboard[4] |= (0x4);
                 break;
-            case 55: //SDLK_7:
+            case "Digit7": //SDLK_7:
                     if (state)
                         zx.ZXKeyboard[4] &= (~0x8);
                     else
                         zx.ZXKeyboard[4] |= (0x8);
                 break;
-            case 54: //SDLK_6:
+            case "Digit6": //SDLK_6:
                     if (state)
                         zx.ZXKeyboard[4] &= (~0x10);
                     else
                         zx.ZXKeyboard[4] |= (0x10);
                 break;
 
-            case 80: //SDLK_p:
+            case "KeyP": //SDLK_p:
                     if (state)
                         zx.ZXKeyboard[5]  &= (~0x1);
                     else
                         zx.ZXKeyboard[5] |= (0x1);
                 break;
-            case 79: //SDLK_o:
+            case "KeyO": //SDLK_o:
                     if (state)
                         zx.ZXKeyboard[5] &= (~0x2);
                     else
                         zx.ZXKeyboard[5] |= (0x2);
                 break;
-            case 73: //SDLK_i:
+            case "KeyI": //SDLK_i:
                     if (state)
                         zx.ZXKeyboard[5] &= (~0x4);
                     else
                         zx.ZXKeyboard[5] |= (0x4);
                 break;
-            case 85: //SDLK_u:
+            case "KeyU": //SDLK_u:
                     if (state)
                         zx.ZXKeyboard[5] &= (~0x8);
                     else
                         zx.ZXKeyboard[5] |= (0x8);
                 break;
-            case 89: //SDLK_y:
+            case "KeyY": //SDLK_y:
                     if (state)
                         zx.ZXKeyboard[5] &= (~0x10);
                     else
                         zx.ZXKeyboard[5] |= (0x10);
                 break;
 
-            case 72:
+            case "KeyH":
                     if (state)
                         zx.ZXKeyboard[6] &= (~0x10);
                     else
                         zx.ZXKeyboard[6] |= (0x10);
                 break;
-            case 74:
+            case "KeyJ":
                     if (state)
                         zx.ZXKeyboard[6] &= (~0x8);
                     else
                         zx.ZXKeyboard[6] |= (0x8);
                 break;
-            case 75:
+            case "KeyK":
                     if (state)
                         zx.ZXKeyboard[6] &= (~0x4);
                     else
                         zx.ZXKeyboard[6] |= (0x4);
                 break;
-            case 76:
+            case "KeyL":
                     if (state)
                         zx.ZXKeyboard[6] &= (~0x2);
                     else
                         zx.ZXKeyboard[6] |= (0x2);
                 break;
-            case 13:
+            case "Enter":
                     if (state)
                         zx.ZXKeyboard[6] &= (~0x1);
                     else
                         zx.ZXKeyboard[6] |= (0x1);
                 break;
 
-            case 32: //SDLK_SPACE:
+            case "Space": //SDLK_SPACE:
                     if (state)
                         zx.ZXKeyboard[7] &= (~0x1);
                     else
                         zx.ZXKeyboard[7] |= (0x1);
                 break;
-            case 17: //SDLK_RSHIFT:
-            case 18: //SDLK_RSHIFT:
+            case "ShiftRight": //SDLK_RSHIFT:
+            case "ControlRight": //SDLK_RSHIFT:
+            case "AltRight": //SDLK_RSHIFT:
                     if (state)
                         zx.ZXKeyboard[7] &= (~0x2);
                     else
                         zx.ZXKeyboard[7] |= (0x2);
                 break;
-            case 77: //SDLK_m:
+            case "KeyM": //SDLK_m:
                     if (state)
                         zx.ZXKeyboard[7] &= (~0x4);
                     else
                         zx.ZXKeyboard[7] |= (0x4);
                 break;
-            case 78: //SDLK_n:
+            case "KeyN": //SDLK_n:
                     if (state)
                         zx.ZXKeyboard[7] &= (~0x8);
                     else
                         zx.ZXKeyboard[7] |= (0x8);
                 break;
-            case 66: //SDLK_b:
+            case "KeyB": //SDLK_b:
                     if (state)
                         zx.ZXKeyboard[7] &= (~0x10);
                     else
                         zx.ZXKeyboard[7] |= (0x10);
                 break;
 
-            case 8: //backspace:
+            case "Backspace": //backspace:
                     if (state) {
                         zx.ZXKeyboard[4] &= (~0x1);
                         zx.ZXKeyboard[0] &= (~0x1);
@@ -362,7 +399,7 @@ if (ctx) {
                         zx.ZXKeyboard[4] |= (0x1);
                     }
                 break;
-            case 39: //right:
+            case "ArrowRight": //right:
                     if (state) {
                         zx.ZXKeyboard[4] &= (~0x4);
                         zx.ZXKeyboard[0] &= (~0x1);
@@ -371,7 +408,7 @@ if (ctx) {
                         zx.ZXKeyboard[0] |= (0x1);
                     }
                 break;
-            case 38: //up:
+            case "ArrowUp": //up:
                     if (state) {
                         zx.ZXKeyboard[4] &= (~0x8);
                         zx.ZXKeyboard[0] &= (~0x1);
@@ -380,7 +417,7 @@ if (ctx) {
                         zx.ZXKeyboard[0] |= (0x1);
                     }
                 break;
-            case 40: //down:
+            case "ArrowDown": //down:
                     if (state) {
                         zx.ZXKeyboard[4] &= (~0x10);
                         zx.ZXKeyboard[0] &= (~0x1);
@@ -389,7 +426,7 @@ if (ctx) {
                         zx.ZXKeyboard[0] |= (0x1);
                     }
                 break;
-            case 37: //left:
+            case "ArrowLeft": //left:
                     if (state) {
                         zx.ZXKeyboard[3] &= (~0x10);
                         zx.ZXKeyboard[0] &= (~0x1);
@@ -399,16 +436,9 @@ if (ctx) {
                     }
                 break;
             };
-        };
+        }
 
         function pick(event) {
-            const bounding = canvas.getBoundingClientRect();
-            const x = (event.clientX - bounding.left) * cwidth/event.target.clientWidth;
-            const y = (event.clientY - bounding.top) * cheight/event.target.clientHeight;
-            if ((x < 2) || (y < 2) || (y > (cheight - 2)) || (x > (cwidth - 2))) return;
-            const xy = figure.add_node(x, y);
-            go();
-            status.innerHTML = "pick("+xy[0]+", "+xy[1]+"); nodes: " + figure.nodes_count();
         }
 
         function reset() {
@@ -434,9 +464,7 @@ class TZX {
         this.vbuf = ws.exports.vbuf.value;
         this.static_data = new Uint32Array(this.buffer, 0, 1024);
         this.ui8ca = new Uint8ClampedArray(this.buffer, this.vbuf, this.isize*4);
-        for (var i = 0; i < width*height*4; i++) {
-            this.ui8ca[i] = 0x7f;
-        }
+        for (var i = 0; i < width*height*4; i++) this.ui8ca[i] = 0x7f;
         this.myImageData = new ImageData(this.ui8ca, cwidth, cheight);
         this.data = this.myImageData.data;
         this.init = ws.exports.init;
@@ -444,6 +472,7 @@ class TZX {
         this.opCounter = ws.exports.opCounter;
         this.opcode = ws.exports.opcode;
         this.loadSNA48k = ws.exports.loadSNA48k;
+        this.saveSNA48k = ws.exports.saveSNA48k;
         this.zxmem = new Uint8Array(this.buffer, ws.exports.zxmem, 65536);
         this.z80 = new Uint16Array(this.buffer, ws.exports.z80, 64);
         this.sna = new Uint8Array(this.buffer, ws.exports.SNA, 27);
@@ -472,3 +501,4 @@ class TZX {
     }
 }
 
+});
