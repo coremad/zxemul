@@ -1,0 +1,43 @@
+body {
+    background-color: black;
+    color: gray;
+}
+
+#content {
+    background-color: black;
+}
+
+#zx {
+    display: flex;
+}
+
+#fps {
+    color: lightgreen;
+}
+
+#status {
+    color: yellow;
+}
+
+#canvas {
+    border-style: groove;
+}
+
+#ddebug {
+    font-family: monospace;
+    width: max-content;
+    font-size: x-small;
+}
+
+#ddebug2 {
+    font-family: monospace;
+    width: max-content;
+    color: lightblue;
+    padding-top: 2px;
+}
+
+.fetch_sna {
+    border: none;
+    margin-bottom:2px;
+    color: blue;
+}
