@@ -1,10 +1,7 @@
 #include <stdint.h>
-#include <stddef.h>
 
 #include "zxemul.h"
 #include "snapshots.h"
-
-#include <emscripten.h>
 
 extern byte zxmem[65536];
 uint32_t vbuf[640*480];

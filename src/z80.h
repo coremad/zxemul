@@ -54,7 +54,7 @@ public:
 	byte cbprefix;
 	byte xdprefix;
 	word addr;
-	int8_t	imm;
+	int8_t imm;
 	int indexreg;
 	int ir;
 	int iff1, iff2;

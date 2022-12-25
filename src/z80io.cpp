@@ -19,7 +19,7 @@ byte Tz80io::readByte(word addr) {
 }
 
 void Tz80io::writeByte(word addr, byte imm) {
-	if(addr >= 16384) zxmem[addr]=imm;
+	if(addr >= 16384) zxmem[addr] = imm;
 }
 
 void Tz80io::writePort(word port, byte n) {
