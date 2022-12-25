@@ -1,5 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+const DEBUG = 1;
+
 const interval = 25;
 const width  = 640;
 const height  = 480;
@@ -17,13 +19,17 @@ const ifile = document.getElementById('file-input');
 const ctx = canvas.getContext('2d');
 
 if (ctx) {
+    function toHex(d, n = 4) {
+        return (d+0x10000).toString(16).substr(-n).toUpperCase();
+    }
+
     ctx.canvas.width  = width;
     ctx.canvas.height  = height;
     fetch("js/zxemul.wasm")
       .then((response) => response.arrayBuffer())
       .then((bytes) => WebAssembly.instantiate(bytes))
       .then((results) => {
-//        console.log(results.instance);
+        console.log(results.instance);
         const zx = new TZX(results.instance, width, height);
         zx.init();
 
@@ -44,6 +50,7 @@ if (ctx) {
                 for (var i = 0; i <  27; i++) zx.sna[i] = sna[i];
                 zx.loadSNA48k();
                 ifile.value = '';
+                str = 0; debug.innerHTML = "";
                 pause();
            }
         }
@@ -100,10 +107,8 @@ if (ctx) {
         });
         pause();
 
-        function toHex(d, n = 4) {
-            return (d+0x10000).toString(16).substr(-n).toUpperCase();
-        }
-
+        ctx.fillStyle = "red";
+        ctx.font = "16px mono";
         const maxStr = 64;
         var str = 0;
         function go() {
@@ -112,23 +117,28 @@ if (ctx) {
             zx.emul();
             zx.emul_active = 0;
             ctx.putImageData(zx.myImageData, 0, 0);
-            const timeTaken = (performance.now() - start);
-            html_fps.innerHTML = timeTaken;
-
-            var opCounter = zx.opCounter();
-            var regs = " PC: " + toHex(zx.z80[0])
-                + " AF: " + toHex(zx.z80[1])
-                + " BC: " + toHex(zx.z80[2])
-                + " DE: " + toHex(zx.z80[3])
-                + " HL: " + toHex(zx.z80[4])
-                + " SP: " + toHex(zx.z80[5])
-                + " IX: " + toHex(zx.z80[6])
-                + " IY: " + toHex(zx.z80[7])
-                + " OP: " + toHex(zx.opcode(), 2);
-            debug2.innerHTML = regs;
-            if ((opCounter >= 100000) && (str <= maxStr)) {
-                debug.innerHTML += "<br>" + opCounter + regs;
-                str++;
+            if (DEBUG) {
+                var hstr = '';
+                hstr = "IFF: " + zx.iff1state() + " IM: " + zx.imstate() + " IR: " + toHex(zx.irstate());
+                if (zx.haltstate()) hstr += ' HALT';
+                ctx.fillText(hstr, 2, 16);
+                const timeTaken = (performance.now() - start);
+                html_fps.innerHTML = timeTaken;
+                var opCounter = zx.opCounter();
+                var regs = " PC: " + toHex(zx.z80[0])
+                    + " AF: " + toHex(zx.z80[1])
+                    + " BC: " + toHex(zx.z80[2])
+                    + " DE: " + toHex(zx.z80[3])
+                    + " HL: " + toHex(zx.z80[4])
+                    + " SP: " + toHex(zx.z80[5])
+                    + " IX: " + toHex(zx.z80[6])
+                    + " IY: " + toHex(zx.z80[7])
+                    + " OP: " + toHex(zx.opcode(), 2);
+                debug2.innerHTML = regs;
+                if ((opCounter >= 1000000) && (str <= maxStr)) {
+                    debug.innerHTML += "<br>" + opCounter + regs;
+                    str++;
+                }
             }
         }
         function pause() {
@@ -572,6 +582,11 @@ class TZX {
         this.init = ws.exports.init;
         this.emul = ws.exports.emul;
         this.opCounter = ws.exports.opCounter;
+        this.haltstate = ws.exports.haltstate;
+        this.iff1state = ws.exports.iff1state;
+        this.iff2state = ws.exports.iff2state;
+        this.imstate = ws.exports.imstate;
+        this.irstate = ws.exports.irstate;
         this.opcode = ws.exports.opcode;
         this.loadSNA48k = ws.exports.loadSNA48k;
         this.saveSNA48k = ws.exports.saveSNA48k;

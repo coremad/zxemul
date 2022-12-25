@@ -1,11 +1,13 @@
 CFLAGS		= -Wall -O3 \
 			--target=wasm32 \
 			-fuse-ld=lld \
+			-nostdlib \
+			-I'/home/madcore/devel/wasm/emsdk/upstream/emscripten/cache/sysroot/include' \
 			-Wl,--lto-O3 \
 			-Wl,-z,stack-size=16777216 \
 			-Wl,--no-entry \
-			-nostdlib \
-			-Wl,--export-all
+			-Wl,--allow-undefined \
+			-Wl,--export-all \
 
 CXXFLAGS	= $(CFLAGS) \
 			-std=c++17

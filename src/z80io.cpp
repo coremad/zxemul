@@ -12,7 +12,6 @@ void Tz80io::reset() {
 	    = ZXKeyboard.kf7 = ZXKeyboard.kef = ZXKeyboard.kdf
 	    = ZXKeyboard.kbf = ZXKeyboard.k7f = 0xbf;
 	ZXKeyboard.pfe = 0;
-//	bindex = 0;
 }
 
 byte Tz80io::readByte(word addr) {
@@ -25,8 +24,7 @@ void Tz80io::writeByte(word addr, byte imm) {
 
 void Tz80io::writePort(word port, byte n) {
 	if ((port & 0xff) == 0xfe) {
-	    qword cTicks = tickCounter % iTicks;
-	    int newBindex = (240*cTicks)/iTicks;
+	    int newBindex = (240*iTicksCounter)/iTicks;
 	    if (newBindex >= bindex) {
 	        for (; bindex < newBindex; bindex++) blines[bindex] = border;
 	    }
@@ -66,16 +64,17 @@ byte Tz80io::readPort(word port) {
 		case 0x7ffe:
 			return ZXKeyboard.k7f;
 			break;
-		default:
-			//printf("inport:%x\n",port);
+		default: //printf("inport:%x\n",port);
 			return ZXKeyboard.pfe;
 		}
 	}
-	if ((port&0xff) == 31)
+
+	if ((port & 0xff) == 31)
 		return kempston & 0xff;
-	if ((port&0xff) == 0xff) {
-	    if ((iTicks - tickCounter % iTicks) < 17986 ) return 0xff;
-	    else return zxmem[22528];
+
+	if ((port & 0xff) == 0xff) {
+	    if (iTicksCounter < 17986 ) return 0xff;
+	    else return zxmem[22528 + (iTicksCounter & 255)];
 	}
 
 	if ((port == 0xfffd) || (port == 0xbffd)) {

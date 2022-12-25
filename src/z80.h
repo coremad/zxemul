@@ -3,21 +3,21 @@
 
 #include "z80io.h"
 
-enum regs8{rC,rB,rE,rD,rL,rH,rXL,rXH,rYL,rYH};
-enum regs16{rBC,rDE,rHL,rSP,rIX,rIY};
+enum regs8{rC, rB, rE, rD, rL, rH, rXL, rXH, rYL, rYH};
+enum regs16{rBC, rDE, rHL, rSP, rIX, rIY};
 
-enum z80cc {cNZ,cZ,cNC,cC,cPO,cPE,cP,cM};
-enum z80flags {fC=1,fN=2,fPV=4,fF3=8,fH=16,fF5=32,fZ=64,fS=128};
+enum z80cc {cNZ, cZ, cNC, cC, cPO, cPE, cP, cM};
+enum z80flags {fC=1, fN=2, fPV=4, fF3=8, fH=16, fF5=32, fZ=64, fS=128};
 
-enum rp1 {rp1BC,rp1DE,rp1HL,rp1SP};
-enum rp2 {rp2BC,rp2DE,rp2HL,rp2AF};
+enum rp1 {rp1BC, rp1DE, rp1HL, rp1SP};
+enum rp2 {rp2BC, rp2DE, rp2HL, rp2AF};
 
-enum rr {rrC,rrB,rrE,rrD,rrL,rrH,rrM,rrA};
-enum alu {aluADD,aluADC,aluSUB,aluSBC,aluAND,aluXOR,aluOR,aluCP};
+enum rr {rrC, rrB, rrE, rrD, rrL, rrH, rrM, rrA};
+enum alu {aluADD, aluADC, aluSUB, aluSBC, aluAND, aluXOR, aluOR, aluCP};
 
-enum rot {rotRLC,rotRRC,rotRL,rotRR,rotSLA,rotSRA,rotSLL,rotSRL};
+enum rot {rotRLC, rotRRC, rotRL, rotRR, rotSLA, rotSRA, rotSLL, rotSRL};
 
-class Tz80{
+class Tz80 {
 public:
 	word rPC;
 	union {
@@ -57,21 +57,17 @@ public:
 	int8_t	imm;
 	int indexreg;
 	int ir;
-
-	int iff1,iff2;
+	int iff1, iff2;
 	int IM;
 	int haltstate;
 
-
-	int debug;
-
-	word opPOP();
-	void opPUSH(word nn);
 	void reset();
 	int emul(dword opNum, dword tickNum);
 	void doInterrupt();
 
 private:
+	word opPOP();
+	void opPUSH(word nn);
 	word readWord(word  addr);
 	void writeWord(word addr, word imm);
 	void addTicks(int ticks);

@@ -3,16 +3,11 @@
 #include "z80.h"
 struct TSNA{
 	byte I;
-	word HL1;
-	word DE1;
-	word BC1;
-	word AF1;
-	word HL,DE,BC,IY,IX;
-	byte IFF;
-	byte R;
-	word AF,SP;
-	byte IM;
-	byte Border;
+	word HL1, DE1, BC1, AF1;
+	word HL, DE, BC, IY, IX;
+	byte IFF, R;
+	word AF, SP;
+	byte IM, Border;
 } __attribute__((__packed__));
 
 #endif //_Z80_H_

@@ -4,6 +4,8 @@
 #include "zxemul.h"
 #include "snapshots.h"
 
+#include <emscripten.h>
+
 extern byte zxmem[65536];
 uint32_t vbuf[640*480];
 
@@ -26,6 +28,7 @@ void Tzx48::emul() {
     bindex = 0;
 	z80.doInterrupt();
 	z80.emul(71680, 71680);
+//	z80.emul(100, 100);
 	if (--flashcounter == 0) {
 		flash ^= 1; flashcounter = 15;
 	}
@@ -121,6 +124,22 @@ extern "C" {
         return z80io.opCounter;
     }
 
+    int haltstate() {
+        return z80.haltstate;
+    }
+    int iff1state() {
+        return z80.iff1;
+    }
+    int iff2state() {
+        return z80.iff2;
+    }
+    int imstate() {
+        return z80.IM;
+    }
+    int irstate() {
+        return z80.rIR;
+    }
+
     byte opcode() {
         return z80.opcode;
     }
@@ -131,7 +150,8 @@ extern "C" {
         z80.r16_1[rDE] = SNA.DE1;
         z80.r16_1[rBC] = SNA.BC1;
         z80.rAF1 = SNA.AF1;
-        z80.iff1 = SNA.IFF&1;
+//        z80.iff1 = ( SNA.IFF >> 1 )& 1;
+        z80.iff2 = z80.iff1 = SNA.IFF;
         z80.rR = SNA.R;
         z80.r16[rHL] = SNA.HL;
         z80.r16[rDE] = SNA.DE;
@@ -143,7 +163,6 @@ extern "C" {
         z80.IM = SNA.IM;
         z80.rPC = z80io.readByte(z80.r16[rSP]) | (z80io.readByte(z80.r16[rSP] + 1) << 8);
         z80.r16[rSP] += 2;
-        z80.iff2 = 1;
         z80.haltstate = 0;
         border = SNA.Border;
     }
@@ -154,7 +173,7 @@ extern "C" {
         SNA.DE1 = z80.r16_1[rDE];
         SNA.BC1 = z80.r16_1[rBC];
         SNA.AF1 = z80.rAF1;
-        SNA.IFF = z80.iff1&1;
+        SNA.IFF = z80.iff1;
         SNA.R = z80.rR;
         SNA.HL = z80.r16[rHL];
         SNA.DE = z80.r16[rDE];
@@ -168,6 +187,5 @@ extern "C" {
         zxmem[SNA.SP + 1] = z80.rPC >> 8;
         SNA.Border = border;
     }
-
 }
 
