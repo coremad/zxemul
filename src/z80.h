@@ -49,7 +49,6 @@ public:
             byte rI;
 		};
 	};
-	qword tickCounter, opCounter;
 
 	byte opcode;
 	byte cbprefix;

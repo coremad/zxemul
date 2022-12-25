@@ -1,4 +1,4 @@
-CFLAGS		= -Wall -O2 \
+CFLAGS		= -Wall -O3 \
 			--target=wasm32 \
 			-fuse-ld=lld \
 			-Wl,--lto-O3 \

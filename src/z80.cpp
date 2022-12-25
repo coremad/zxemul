@@ -9,12 +9,12 @@ inline uint parity(byte x) {
 }
 
 void Tz80::reset() {
-	tickCounter = opCounter = rPC = rAF = rAF1 = rIR = xdprefix = opcode = iff1 = iff2 = haltstate = IM = 0;
+	z80io.tickCounter = z80io.opCounter = rPC = rAF = rAF1 = rIR = xdprefix = opcode = iff1 = iff2 = haltstate = IM = 0;
 	for (int i = 0; i < 6; i++) r16[i] = 0; for (int i = 0; i < 4; i++) r16_1[i] = 0;
 }
 
 inline void Tz80::addTicks(int ticks) {
-	tickCounter += ticks;
+	z80io.tickCounter += ticks;
 }
 
 inline word Tz80::readWord(word addr) {
@@ -899,11 +899,12 @@ inline void Tz80::grX3(byte y, byte z) {
 }
 
 int Tz80::emul(dword opNum, dword tickNum) {
-	qword endOp = opNum + opCounter;
-	qword endTick = tickNum + tickCounter;
+    z80io.iTicks = tickNum;
+	qword endOp = opNum + z80io.opCounter;
+	qword endTick = tickNum + z80io.tickCounter;
 	do {
 		if(haltstate) break;
-		opcode=readNextByte();
+		opcode = readNextByte();
 		int z = opcode & 7;
 		int y = (opcode >> 3) & 7;
 		int x = (opcode >> 6) & 3;
@@ -928,8 +929,8 @@ int Tz80::emul(dword opNum, dword tickNum) {
 				xdprefix = 0; ir = 0;
 			} else continue;
 		}
-		opCounter++; tickCounter += 4;
-	} while((opCounter < endOp) && (tickCounter < endTick));
+		z80io.opCounter++; z80io.tickCounter += 4;
+	} while((z80io.opCounter < endOp) && (z80io.tickCounter < endTick));
 	return 0;
 }
 

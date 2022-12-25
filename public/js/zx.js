@@ -77,7 +77,7 @@ if (ctx) {
                 pause();
             }
 
-        const fkempston = {kLeft:1,kRigth:2,kUp:4,kDown:8,kFire:16};
+        const fkempston = {kLeft:1, kRigth:2, kUp:4, kDown:8, kFire:16};
 
         window.addEventListener('gamepadconnected', (event) => {
           const update = () => {
@@ -536,6 +536,8 @@ if (ctx) {
                     }
                 break;
             };
+            event.preventDefault();
+            return false;
         }
 
         function pick(event) {
@@ -588,7 +590,8 @@ class TZX {
         var blob = await resp.blob();
         var buf = await blob.arrayBuffer();
         var sna = new Uint8Array(buf);
-        for (var i = 0; i< buf.byteLength; i++)
+        var len = Math.max(buf.byteLength - 27, 48*1024);
+        for (var i = 0; i < len; i++)
             this.zxmem[i + 16384] = sna[i+27];
         for (var i = 0; i <  27; i++) this.sna[i] = sna[i];
         this.loadSNA48k();

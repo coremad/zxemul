@@ -17,6 +17,7 @@ enum fkempston{kLeft = 1, kRigth = 2, kUp = 4, kDown = 8, kFire = 16};
 
 class Tz80io {
 public:
+	qword tickCounter, opCounter, iTicks;
 	byte readByte(word addr);
 	void writeByte(word addr, byte val);
 	byte readPort(word addr);
