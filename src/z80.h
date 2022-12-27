@@ -15,6 +15,7 @@ enum rp2 {rp2BC, rp2DE, rp2HL, rp2AF};
 enum rr {rrC, rrB, rrE, rrD, rrL, rrH, rrM, rrA};
 enum alu {aluADD, aluADC, aluSUB, aluSBC, aluAND, aluXOR, aluOR, aluCP};
 
+enum pCB {rotCB, bitCB, resCB, setCB};
 enum rot {rotRLC, rotRRC, rotRL, rotRR, rotSLA, rotSRA, rotSLL, rotSRL};
 
 class Tz80 {
@@ -49,23 +50,28 @@ public:
             byte rI;
 		};
 	};
+	int iff1, iff2;
+	int IM;
+	int haltstate;
 
 	byte opcode;
-	byte cbprefix;
 	byte xdprefix;
+	byte cbprefix;
+	byte edprefix;
 	word addr;
 	int8_t imm;
 	int indexreg;
 	int ir;
-	int iff1, iff2;
-	int IM;
-	int haltstate;
 
 	void reset();
 	int emul(dword opNum, dword tickNum);
 	void doInterrupt();
 
 private:
+	byte readByte(word addr);
+	void writeByte(word addr, byte val);
+	byte readPort(word addr);
+	void writePort(word addr, byte val);
 	word opPOP();
 	void opPUSH(word nn);
 	word readWord(word  addr);
@@ -73,17 +79,29 @@ private:
 	void addTicks(int ticks);
 	byte readNextByte();
 	word readNextWord();
-	byte getrr(byte r);
+
+	byte getrr(byte rr);
+	byte getrrN(byte rr);
+	byte getrrO(byte rr);
+	byte getrrL(byte rr);
+
 	void setrr(byte rr, byte val);
+	void setrrN(byte rr, byte val);
+	void setrrO(byte rr, byte val);
+    void setrrL(byte rr, byte val);
+
 	byte getrrcb(byte rr);
 	void setrrcb(byte r, byte val);
+
 	word get16r(byte rr);
 	void set16r(byte rr, word nn);
+
 	bool checkCC(byte cc);
 	void opNOP();
 	void opEX_AF_AF();
 	void opDJNZ();
 	void gotoaddr(word addr);
+    void gotooffs(int8_t offs);
 	void opINC16(byte rr);
 	void opDEC16(byte rr);
 	void opINC8(byte r);

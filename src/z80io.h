@@ -9,6 +9,9 @@ typedef uint32_t dword;
 typedef uint64_t qword;
 typedef unsigned int uint;
 
+#define blines48k 240
+//#define blines48k 320
+
 struct TZXKeyboard {
 	byte kfe, kfd, kfb, kf7, kef, kdf, kbf, k7f, pfe;
 };

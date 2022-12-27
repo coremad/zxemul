@@ -9,6 +9,7 @@ body {
 
 #zx {
     display: flex;
+    width: 1200px;
 }
 
 #fps {
@@ -40,4 +41,21 @@ body {
     border: none;
     margin-bottom:2px;
     color: blue;
+}
+
+.slidecontainer {
+    width: 100%;
+    display: flex;
+}
+
+#iRange {
+    width: inherit;
+}
+
+.model {
+    border: grey;
+}
+
+#models {
+    padding-top: 2px;
 }

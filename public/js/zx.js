@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 const DEBUG = 1;
 
-const interval = 25;
+const interval = 20;
 const width  = 640;
 const height  = 480;
 
@@ -15,6 +15,9 @@ const pbutton = document.getElementById('pbutton');
 const cbutton = document.getElementById('cbutton');
 const rlbutton = document.getElementById('rlbutton');
 const ifile = document.getElementById('file-input');
+const islider = document.getElementById("iRange");
+const itacts = document.getElementById("itacts");
+const czx = document.getElementById("zx");
 
 const ctx = canvas.getContext('2d');
 
@@ -27,7 +30,7 @@ if (ctx) {
     ctx.canvas.height  = height;
     fetch("js/zxemul.wasm")
       .then((response) => response.arrayBuffer())
-      .then((bytes) => WebAssembly.instantiate(bytes))
+      .then((bytes) => WebAssembly.instantiate(bytes, importObject))
       .then((results) => {
         console.log(results.instance);
         const zx = new TZX(results.instance, width, height);
@@ -35,6 +38,13 @@ if (ctx) {
 
         pbutton.onclick = pause;
         cbutton.onclick = reset;
+
+        islider.value = zx.itacts[0];
+        itacts.innerHTML = islider.value;
+        islider.oninput = function() {
+            zx.itacts[0] = this.value;
+            itacts.innerHTML = this.value;
+        }
 
         ifile.type = 'file';
         ifile.onchange = e => {
@@ -54,7 +64,6 @@ if (ctx) {
                 pause();
            }
         }
-
         lbutton.onclick = function() { ifile.click(); };
 
         sbutton.onclick = function() {
@@ -84,6 +93,13 @@ if (ctx) {
                 pause();
             }
 
+        elements = document.getElementsByClassName("model");
+        for(let i = 0; i < elements.length; i++) elements[i].onclick = function (e) {
+                zx.itacts[0] = e.target.getAttribute("data");
+                islider.value = zx.itacts[0];
+                itacts.innerHTML = islider.value;
+            }
+
         const fkempston = {kLeft:1, kRigth:2, kUp:4, kDown:8, kFire:16};
 
         window.addEventListener('gamepadconnected', (event) => {
@@ -109,7 +125,7 @@ if (ctx) {
 
         ctx.fillStyle = "red";
         ctx.font = "16px mono";
-        const maxStr = 64;
+        const maxStr = 48;
         var str = 0;
         function go() {
             const start = performance.now();
@@ -135,7 +151,7 @@ if (ctx) {
                     + " IY: " + toHex(zx.z80[7])
                     + " OP: " + toHex(zx.opcode(), 2);
                 debug2.innerHTML = regs;
-                if ((opCounter >= 1000000) && (str <= maxStr)) {
+                if ((opCounter >= 0) && (str <= maxStr)) {
                     debug.innerHTML += "<br>" + opCounter + regs;
                     str++;
                 }
@@ -594,7 +610,8 @@ class TZX {
         this.z80 = new Uint16Array(this.buffer, ws.exports.z80, 64);
         this.sna = new Uint8Array(this.buffer, ws.exports.SNA, 27);
         this.ZXKeyboard = new Uint8Array(this.buffer, ws.exports.ZXKeyboard, 8);;
-        this.kempston = new Uint32Array(this.buffer, ws.exports.kempston, 1);;
+        this.kempston = new Uint32Array(this.buffer, ws.exports.kempston, 1);
+        this.itacts = new Uint32Array(this.buffer, ws.exports.itacts, 1);
         this.loadROM();
         this.init();
         this.emul_active = 0;

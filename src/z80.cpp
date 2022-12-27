@@ -18,16 +18,37 @@ inline void Tz80::addTicks(int ticks) {
 	z80io.iTicksCounter += ticks;
 }
 
-inline word Tz80::readWord(word addr) {
-	return (z80io.readByte(addr) | (z80io.readByte(addr + 1) << 8));
+
+inline byte Tz80::readByte(word addr) {
+    addTicks(3);
+    return z80io.readByte(addr);
 }
 
-inline void Tz80::writeWord(word addr,word imm) {
-		z80io.writeByte(addr, imm & 255); z80io.writeByte(addr + 1, (imm >> 8)&255);
+inline void Tz80::writeByte(word addr, byte val) {
+    addTicks(3);
+    z80io.writeByte(addr, val);
+}
+
+inline byte Tz80::readPort(word addr) {
+    addTicks(4);
+    return z80io.readPort(addr);
+}
+
+inline void Tz80::writePort(word addr, byte val) {
+    addTicks(4);
+    z80io.writePort(addr, val);
+}
+
+inline word Tz80::readWord(word addr) {
+	return (readByte(addr) | (readByte(addr + 1) << 8));
+}
+
+inline void Tz80::writeWord(word addr, word imm) {
+		writeByte(addr, imm & 255); writeByte(addr + 1, (imm >> 8)&255);
 }
 
 inline byte Tz80::readNextByte() {
-	return z80io.readByte(rPC++);
+	return readByte(rPC++);
 }
 
 inline word Tz80::readNextWord() {
@@ -36,69 +57,69 @@ inline word Tz80::readNextWord() {
 }
 
 inline byte Tz80::getrr(byte rr) {
-	if (rr<rrM) {
-		return r8[(rr ^ 1)];
-	} else if (rr==rrA){
-		return rA;
-	} else {
-		if(xdprefix==0) {
-			addTicks(3);
-			return z80io.readByte(r16[rHL]);
-		} else {
-			if(ir==0) imm=readNextByte();
-			addTicks(15);
-			ir=1;
-			return z80io.readByte(r16[indexreg] + imm);
-		}
-	}
+    if(rr == rrA) return rA;
+    if((rr < rrM && !xdprefix) || (rr < rrL)) return r8[rr ^ 1];
+    if(rr < rrM) return r8[4 + (rr ^ 1)];
+    if(!xdprefix) return readByte(r16[rHL]);
+    if(ir == 0) imm = readNextByte();
+    ir = 1;
+    addTicks(5);
+    return readByte(r16[indexreg] + imm);
+}
+
+inline byte Tz80::getrrL(byte rr) {
+    if(rr == rrA) return rA;
+    return r8[rr ^ 1];
 }
 
 inline void Tz80::setrr(byte rr, byte val) {
-	if (rr<rrM) {
-		r8[(rr ^ 1)]=val;
+    if (rr == rrA) {
+		rA = val;
 		return;
-	} else if (rr==rrA) {
-		rA=val;
+    }
+	if ((rr < rrM && !xdprefix) || (rr < rrL)) {
+		r8[rr ^ 1] = val;
 		return;
-	} else {
-		if(xdprefix==0) {
-			z80io.writeByte(r16[rHL],val);
-			return;
-		} else {
-			if (ir==0) imm=readNextByte();
-			z80io.writeByte(r16[indexreg] + imm,val);
-			ir=0;
-			return;
-		}
 	}
+    if(rr < rrM) {
+        r8[4 + (rr ^ 1)] = val;
+        return;
+    }
+    if(!xdprefix) {
+        writeByte(r16[rHL], val);
+        return;
+    }
+    if (ir == 0) imm=readNextByte();
+    writeByte(r16[indexreg] + imm, val);
+    addTicks(5);
+    ir = 1;
+    return;
+}
+
+inline void Tz80::setrrL(byte rr, byte val) {
+    if (rr == rrA) rA = val;
+    else r8[(rr ^ 1)] = val;
 }
 
 inline byte Tz80::getrrcb(byte rr) {
-	if (rr < rrM) {
-		return r8[rr ^ 1];
-	} else if (rr == rrA) {
-		return rA;
-	} else {
-		if(xdprefix == 0) {
-			return z80io.readByte(r16[rHL]);
-		} else {
-			return z80io.readByte(r16[indexreg] + imm);
-		}
-	}
+    if(!xdprefix) {
+        if(rr == rrA) return rA;
+        if(rr < rrM) return r8[rr ^ 1];
+        return readByte(r16[rHL]);
+    }
+    addTicks(6);
+    return readByte(r16[indexreg] + imm);
 }
 
 inline void Tz80::setrrcb(byte rr, byte val) {
-	if (rr < rrM) {
-		r8[rr ^ 1]=val;
-	} else if (rr == rrA) {
-		rA = val;
-	} else {
-		if (xdprefix == 0) {
-			z80io.writeByte(r16[rHL], val);
-		} else {
-			z80io.writeByte(r16[indexreg] + imm, val);
-		}
-	}
+    if (rr == rrA) {
+        rA = val;
+    }
+    if (rr < rrM) {
+        r8[rr ^ 1] = val;
+    }
+    if(!xdprefix && rr == rrM) writeByte(r16[rHL], val);
+    if(xdprefix) writeByte(r16[indexreg] + imm, val);
 }
 
 inline word Tz80::get16r(byte rr) {
@@ -107,7 +128,6 @@ inline word Tz80::get16r(byte rr) {
 	else if (xdprefix == 0)
 		return r16[rHL];
 	else
-		addTicks(4);
 	return r16[indexreg];
 }
 
@@ -120,7 +140,7 @@ inline void Tz80::set16r(byte rr, word nn) {
 		r16[indexreg] = nn;
 }
 
-inline bool	Tz80::checkCC(byte cc){
+inline bool	Tz80::checkCC(byte cc) {
 	switch (cc) {
 	case cNZ:
 		return ((rF & fZ) == 0);
@@ -144,10 +164,9 @@ inline bool	Tz80::checkCC(byte cc){
 		return ((rF & fS) == 0);
 		break;
 	case cM:
+	default:
 		return ((rF & fS) != 0);
 		break;
-	default: ; //DcheckCC(rPC, cc, opcode);
-		return 1;
 	}
 }
 
@@ -156,6 +175,7 @@ inline void Tz80::gotoaddr(word addr) {
 }
 
 inline void Tz80::opINC8(byte r) {	//printf("INC8 %x\n",opcode);
+    if (r == rrM) addTicks(1);
 	byte temp = getrr(r) + 1;
 	rF=(rF & ~0xfe) | (temp & 0xa8) |
 			(((temp & 0xff) == 0) << 6) |
@@ -165,6 +185,7 @@ inline void Tz80::opINC8(byte r) {	//printf("INC8 %x\n",opcode);
 }
 
 inline void Tz80::opDEC8(byte r) {	//printf("Dec8 %x\n",opcode);
+    if (r == rrM) addTicks(1);
 	byte temp = getrr(r) - 1;
 	rF = (rF & ~0xfe) | (temp & 0x80) |
 			(((temp & 0xff) == 0) << 6) |
@@ -175,13 +196,14 @@ inline void Tz80::opDEC8(byte r) {	//printf("Dec8 %x\n",opcode);
 
 inline void Tz80::opLD8imm(byte r) {//printf("LD8imm ");
 	if (xdprefix != 0) {
-		imm = readNextByte(); ir=1;
+		imm = readNextByte(); ir = 1;
 	}
     byte temp = readNextByte();
-    setrr(r, temp); addTicks(3);
+    setrr(r, temp);
 }
 
 inline void Tz80::grINCDEC16(byte rr) {
+    addTicks(2);
     switch (rr&1) {
 	case 0://INC R16
 		set16r(rr >> 1, get16r(rr>>1) + 1);
@@ -192,30 +214,29 @@ inline void Tz80::grINCDEC16(byte rr) {
     }
 }
 
+inline void Tz80::gotooffs(int8_t offs) {
+    gotoaddr(rPC + offs);
+    addTicks(5);
+}
+
 inline void Tz80::grJR(byte y) {
 	int8_t offs; word temp;
 	switch(y) {
 	case 0: // NOP
 		break;
-	case 1:// EX AF,AF'
+	case 1: // EX AF,AF'
 		temp = rAF; rAF = rAF1; rAF1 = temp;
 		break;
-	case 2:// DJNZ N
-		offs = readNextByte(); addTicks(4);
-		r8[rB]--;
-		if (r8[rB] != 0) {
-			gotoaddr(rPC + offs); addTicks(5);
-		};
+	case 2: // DJNZ N
+		offs = readNextByte(); addTicks(1);
+		if (--r8[rB] != 0) gotooffs(offs);
 		break;
-	case 3:// JR N
+	case 3: // JR N
+		gotooffs(readNextByte());
+		break;
+	default: // JR CC,N
 		offs = readNextByte();
-		gotoaddr(rPC + offs); addTicks(8);
-		break;
-	default:// JR CC,N
-		offs = readNextByte(); addTicks(3);
-		if (checkCC(y - 4)) {
-			gotoaddr(rPC + offs); addTicks(5);
-		}
+		if (checkCC(y - 4)) gotooffs(offs);
 	}
 }
 
@@ -232,6 +253,7 @@ inline void Tz80::gr16(byte y) {
 		int cbits = (reghl ^ regp ^ temp) >> 8;
 		rF = (rF & ~0x3b) | (cbits & 0x10) | ((cbits >> 8) & 1);
 		set16r(rHL, temp);
+		addTicks(7);
 		break;
 	}
 }
@@ -239,16 +261,16 @@ inline void Tz80::gr16(byte y) {
 inline void Tz80::grImL(byte p) {
 	switch(p) {
 	case 0:	// LD (BC),A
-		z80io.writeByte(r16[rBC], rA);
+		writeByte(r16[rBC], rA);
 		break;
 	case 1:	// LD (DE),A
-		z80io.writeByte(r16[rDE], rA);
+		writeByte(r16[rDE], rA);
 		break;
 	case 2:	// LD (NN),HL
 		writeWord(readNextWord(), get16r(rHL));
 		break;
 	case 3:	// LD (NN),A
-		z80io.writeByte(readNextWord(), rA);
+		writeByte(readNextWord(), rA);
 		break;
 	}
 }
@@ -256,16 +278,16 @@ inline void Tz80::grImL(byte p) {
 inline void Tz80::grILm(byte p) {
 	switch(p) {
 	case 0:	// LD A,(BC)
-		rA = z80io.readByte(r16[rBC]);
+		rA = readByte(r16[rBC]);
 		break;
 	case 1:	// LD A,(DE)
-		rA = z80io.readByte(r16[rDE]);
+		rA = readByte(r16[rDE]);
 		break;
 	case 2:	// LD HL,(NN)
 		set16r(rHL, readWord(readNextWord()));
 		break;
 	case 3:	// LD A,(NN)
-		rA = z80io.readByte(readNextWord());
+		rA = readByte(readNextWord());
 		break;
 	}
 }
@@ -335,6 +357,8 @@ inline void Tz80::grX0Z7(byte y) {
 	case 5:	// CPL
 		temp = temp ^ 0xff;
 		rA = temp & 255;
+		setflag(fN);
+		setflag(fH);
 		break;
 	case 6:	// SCF
 		rAF = (rAF&~0x3b)|((rAF>>8)&0x28)|1;
@@ -342,7 +366,6 @@ inline void Tz80::grX0Z7(byte y) {
 	case 7:	// CCF
 		rAF = (rAF&~0x3b)|((rAF>>8)&0x28)|((rAF&1)<<4)|(~rAF&1);
 		break;
-	default: ; //DgrX0Z7(rPC, y, opcode);
 	}
 }
 
@@ -372,15 +395,23 @@ inline void Tz80::grX0(byte y, byte z) {
 	case 7:
 		grX0Z7(y);
 		break;
-	default: ; //DgrX0 (rPC, y, z, opcode);
 	}
 }
 
 inline void Tz80::opLD8(int y, int z) {
-	if ((y == 6) && (z == 6)) // HALT
+	if (y == 6 && z == 6) // HALT
 		haltstate = 1;
-	else // LD R8,R8
-		setrr(y, getrr(z));
+	else { // LD R8,R8
+	    if (y == 6 ) {
+	        setrr(y, getrrL(z));
+	        return;
+	    }
+	    if (z == 6) {
+	        setrrL(y, getrr(z));
+	        return;
+	    }
+        setrr(y, getrr(z));
+	}
 }
 
 inline void Tz80::setflag(byte ff){
@@ -465,27 +496,27 @@ inline word Tz80::getrp2(byte rp2) {
 inline void Tz80::setrp2(byte rp2, word nn) {
 	if (rp2 >= rp2AF) rAF = nn;
 	else
-		if(xdprefix == 0) r16[rp2] = nn;
+		if(!xdprefix) r16[rp2] = nn;
 		else r16[indexreg] = nn;
 }
 
 inline void Tz80::opPUSH(word nn) {
 	r16[rSP] -= 2;
 	writeWord(r16[rSP], nn);
+	addTicks(1);
 }
 
 inline void Tz80::bLD() {
-	int acu = z80io.readByte(r16[rHL]);
-	z80io.writeByte(r16[rDE], acu);
+	int acu = readByte(r16[rHL]);
+	writeByte(r16[rDE], acu);
 	acu += rA;
 	rF = (rF & ~0x3e) | (acu & 8) | ((acu & 2) << 4) |
 		(((--r16[rBC] & 0xffff) != 0) << 2);
-	addTicks(12);
 }
 
 inline void Tz80::bCP() {
 	int acu = rA;
-	int temp = z80io.readByte(r16[rHL]);
+	int temp = readByte(r16[rHL]);
 	int sum = acu - temp;
 	int cbits = acu ^ temp ^ sum;
 	rAF = (rAF & ~0xfe) | (sum & 0x80) | (!(sum & 0xff) << 6) |
@@ -494,10 +525,10 @@ inline void Tz80::bCP() {
 		((--r16[rBC] & 0xffff) != 0) << 2 | 2;
 	if ((sum & 15) == 8 && (cbits & 16) != 0)
 	rAF &= ~8;
-	addTicks(12);
 }
 
 inline void Tz80::grBLI(byte a, byte b) {
+    addTicks(2);
 	switch(b) {
 	case 0:
 		bLD();
@@ -510,13 +541,19 @@ inline void Tz80::grBLI(byte a, byte b) {
 			break;
 		case 6:// LDIR
 			r16[rHL]++; r16[rDE]++;
-			if (r16[rBC] > 0) gotoaddr(rPC-2);
+			if (r16[rBC] > 0) {
+                gotoaddr(rPC - 1);
+                edprefix = 1;
+            }
 			break;
 		case 7:// LDDR
 			r16[rHL]--; r16[rDE]--;
-			if (r16[rBC] > 0) gotoaddr(rPC-2);
+			if (r16[rBC] > 0) {
+                gotoaddr(rPC - 1);
+                edprefix = 1;
+            }
 			break;
-		default: ; //DgrBLI (rPC, a, b, opcode);
+//		default: ; DgrBLI (rPC, a, b, opcode);
 		}
 		break;
 	case 1:
@@ -530,21 +567,27 @@ inline void Tz80::grBLI(byte a, byte b) {
 			break;
 		case 6:// CPIR
 			r16[rHL]++;
-			if ((r16[rBC] > 0) && ((rF & fZ) == 0)) gotoaddr(rPC-2);
+			if ((r16[rBC] > 0) && ((rF & fZ) == 0)) {
+                gotoaddr(rPC - 1);
+                edprefix = 1;
+			}
 			break;
 		case 7:// CPDR
 			r16[rHL]--;
-			if ((r16[rBC] > 0) && ((rF & fZ) == 0)) gotoaddr(rPC-2);
+			if ((r16[rBC] > 0) && ((rF & fZ) == 0)) {
+                gotoaddr(rPC - 1);
+                edprefix = 1;
+            }
 			break;
-		default: ; //DgrBLI (rPC, a, b, opcode);
+//		default: ; DgrBLI (rPC, a, b, opcode);
 		}
 		break;
-	default: ; //DgrBLI (rPC, a, b, opcode);
+//	default: ; DgrBLI (rPC, a, b, opcode);
 	}
 }
 
 inline void Tz80::opIM(byte y) { // DopIM(rPC, y, opcode);
-	IM = y-1; addTicks(4);
+	IM = y-1;
 }
 
 inline void Tz80::grEDX1(byte y, byte z) {
@@ -558,15 +601,15 @@ inline void Tz80::grEDX1(byte y, byte z) {
 	switch(z) {
 	case 0:
 		switch(y) {
-		case 6:// IN X,(C)
-			temp1 = z80io.readPort(r16[rBC]);
+		case rrM:// IN X,(C)
+			temp1 = readPort(r16[rBC]);
 			rF = (rF & ~0xfe) | (temp1 & 0xa8) |
 				(((temp1 & 0xff) == 0) << 6) |
 				parity(temp1);
 			break;
 		default:// IN R,(C)
-			temp1 = z80io.readPort(r16[rBC]);
-			setrr(y, temp1);
+			temp1 = readPort(r16[rBC]);
+			setrrL(y, temp1);
 			rF = (rF & ~0xfe) | (temp1 & 0xa8) |
 				(((temp1 & 0xff) == 0) << 6) |
 				parity(r8[y]);
@@ -575,15 +618,16 @@ inline void Tz80::grEDX1(byte y, byte z) {
 		break;
 	case 1:
 		switch(y) {
-		case 6:// OUT (C),0
-			z80io.writePort(r16[rBC], 0);
+		case rrM:// OUT (C),0
+			writePort(r16[rBC], 0);
 			break;
 		default:// OUT (C),R
-			z80io.writePort(r16[rBC], getrr(y));
+			writePort(r16[rBC], getrrL(y));
 			break;
 		}
 		break;
 	case 2:
+	    addTicks(7);
 		switch (q) {
 		case 0: // SBC HL,rp
 			temp = r16[rHL] - r16[p] - fgetC();
@@ -593,7 +637,6 @@ inline void Tz80::grEDX1(byte y, byte z) {
 				(((temp & 0xffff) == 0) << 6) |
 				(((cbits >> 6) ^ (cbits >> 5)) & 4) |
 				(cbits & 0x10) | 2 | ((cbits >> 8) & 1);
-			addTicks(15);
 			break;
 		case 1: // ADC HL,rp
 			temp = r16[rHL] + r16[p] + fgetC();
@@ -603,11 +646,11 @@ inline void Tz80::grEDX1(byte y, byte z) {
 				(((temp & 0xffff) == 0) << 6) |
 				(((cbits >> 6) ^ (cbits >> 5)) & 4) |
 				(cbits & 0x10) | ((cbits >> 8) & 1);
-			addTicks(15);
 			break;
 		}
 		break;
 	case 3:
+	    addTicks(4);
 		switch (q) {
 		case 0:// LD (NN),rp
 			writeWord(readNextWord(), r16[p]);
@@ -631,6 +674,7 @@ inline void Tz80::grEDX1(byte y, byte z) {
 	case 6:	opIM(y);
 		break;
 	case 7:
+	    addTicks(1);
 		switch(y) {
 		case 0:	// LD I,A
 			rI = rA;
@@ -642,46 +686,46 @@ inline void Tz80::grEDX1(byte y, byte z) {
 			if (iff2 != 0)
 				setflag(fPV);
 			else
-				resflag(fPV);
-			resflag(fN);
-			resflag(fH);
+                resflag(fPV);
+			resflag(fH | fN);
 			rA = rI;
 			break;
 		case 3:	// LD A,R
 			if (iff2 != 0)
 				setflag(fPV);
 			else
-				resflag(fPV);
-			resflag(fN);
-			resflag(fH);
-			rA = rR & 127;
+                resflag(fPV);
+			resflag(fN | fH);
+			rA = rR;
 			break;
 		case 4:	// RRD
-			temp = z80io.readByte(r16[rHL]);
+		    addTicks(4);
+			temp = readByte(r16[rHL]);
 			acu = rA;
-			z80io.writeByte(r16[rHL], (temp >> 4) | (acu << 4));
+			writeByte(r16[rHL], (temp >> 4) | (acu << 4));
             acu = (acu & 0xf0) | (temp & 0x0f);
 			rAF = (acu << 8) | (acu & 0xa8) | (((acu & 0xff) == 0) << 6) |
 				parity(acu) | (rAF & 1);
             break;
 		case 5:	// RLD
-			temp = z80io.readByte(r16[rHL]);
+		    addTicks(4);
+			temp = readByte(r16[rHL]);
 			acu = rA;
-			z80io.writeByte(r16[rHL], ((temp&0xf) << 4) | (acu & 0xf));
+			writeByte(r16[rHL], ((temp&0xf) << 4) | (acu & 0xf));
 			acu = (acu & 0xf0) | ((temp>>4)&0xf);
 			rAF = (acu << 8) | (acu & 0xa8) | (((acu & 0xff) == 0) << 6) |
 				parity(acu) | (rAF & 1);
 			break;
-		default: ; //DgrEDX1Z7 (rPC, y, z, opcode);
+//		default: ; DgrEDX1Z7 (rPC, y, z, opcode);
 		}
 		break;
-	default: ; //DgrEDX1Z7 (rPC, y, z, opcode);
+//	default: ; DgrEDX1Z7 (rPC, y, z, opcode);
 	};
 };
 
 inline void Tz80::grED() {
 	byte x,y,z;
-	opcode = readNextByte();
+    edprefix = 0;
 	z = opcode & 7;
 	y = (opcode >> 3) & 7;
 	x = (opcode >> 6) & 3;
@@ -707,19 +751,20 @@ inline void Tz80::grPUSH(byte y) {
 	case 1:
 		switch(p) {
 		case 0:// CALL NN
+		    addTicks(1);
 			temp = readNextWord();
 			opPUSH(rPC);
 			gotoaddr(temp);
-			addTicks(17);
 			break;
 		case 1:// DD prefix
-			xdprefix = 0xdd; indexreg = rIX;
+			xdprefix = 0xdd; indexreg = rIX; ir = 0;
 			break;
 		case 2:// ED prefix
 			grED();
+			edprefix = 1;
 			break;
 		case 3:// FD prefix
-			xdprefix = 0xfd; indexreg = rIY;
+			xdprefix = 0xfd; indexreg = rIY; ir = 0;
 			break;
 		}
 		break;
@@ -748,7 +793,6 @@ inline void Tz80::grPOP(byte y) {
 		switch (p) {
 		case 0:// RET
 			gotoaddr(opPOP());
-			addTicks(6);
 			break;
 		case 1:// EXX
 			opEXX();
@@ -757,7 +801,8 @@ inline void Tz80::grPOP(byte y) {
 			gotoaddr(get16r(rHL));
 			break;
 		case 3:// LD SP,HL
-			r16[rSP]=get16r(rHL);
+			r16[rSP] = get16r(rHL);
+			addTicks(2);
 			break;
 		}
 		break;
@@ -800,10 +845,6 @@ inline void Tz80::rotateCB(byte y, byte z) {//{rotRLC,rotRRC,rotRL,rotRR,rotSLA,
 		temp = reg >> 1;
 		cbits = reg & 1;
 		break;
-	default:
-		temp = 0;
-		cbits = 0;
-		//DrotateCB (rPC, y, z, opcode); // printf("error rotate  %x\n",opcode);
 	}
 	setrrcb(z, temp);
 	rF = (temp & 0xa8) |
@@ -813,50 +854,51 @@ inline void Tz80::rotateCB(byte y, byte z) {//{rotRLC,rotRRC,rotRL,rotRR,rotSLA,
 
 inline void Tz80::grCB() {
 	byte x, y, z, acu;
-	if (xdprefix != 0) imm = readNextByte();
+	addTicks(4);
+	if (xdprefix && !ir) imm = readNextByte();
 	opcode = readNextByte();
-	z = opcode & 7;
-	y = (opcode >> 3) & 7;
-	x = (opcode >> 6) & 3;
-	switch (x) {
-	case 0:
-		rotateCB(y, z);
-		break;
-	case 1:// BIT y,z;
-		acu = getrrcb(z);
-		if (acu & (1 << y))
-			rF = (rF & ~0xfe) | 0x10 |((y == 7) << 7);
-		else
-			rF = (rF & ~0xfe) | 0x54;
-		break;
-	case 2: // RES y,z
-		setrrcb(z, getrrcb(z) & (~(1 << y)));
-		break;
-	case 3:// opSET y,z
-		setrrcb(z, getrrcb(z) | (1 << y));
-		break;
-	default: ; //DgrCB (rPC, x, y, z, opcode);
-	}
+    z = opcode & 7;
+    y = (opcode >> 3) & 7;
+    x = (opcode >> 6) & 3;
+    switch (x) {
+    case rotCB:
+        rotateCB(y, z);
+        break;
+    case bitCB:// BIT y,z;
+        acu = getrrcb(z);
+        if (acu & (1 << y))
+            rF = (rF & ~0xfe) | 0x10 |((y == 7) << 7);
+        else
+            rF = (rF & ~0xfe) | 0x54;
+        break;
+    case resCB: // RES y,z
+        setrrcb(z, getrrcb(z) & (~(1 << y)));
+        break;
+    case setCB:// opSET y,z
+        setrrcb(z, getrrcb(z) | (1 << y));
+        break;
+    }
 }
 
 inline void Tz80::grJP(byte y) {
 	word temp;
 	switch(y) {
 	case 0:// JP NN
-		addTicks(6); gotoaddr(readNextWord());
+        gotoaddr(readNextWord());
 		break;
 	case 1:// CB PREFIX
 		grCB();
 		break;
 	case 2:// OUT (N),A
-		z80io.writePort(readNextByte() | (rA<<8), rA);
+		writePort(readNextByte() | (rA<<8), rA);
 		break;
 	case 3:// IN A,(N)
-		rA = z80io.readPort(readNextByte() | (rA<<8));
+		rA = readPort(readNextByte() | (rA<<8));
 		break;
 	case 4:// EX (SP),HL
 		temp = get16r(rHL);
 		set16r(rHL, readWord(r16[rSP]));
+		addTicks(5);
 		writeWord(r16[rSP], temp);
 		break;
 	case 5:// EX DE,HL
@@ -868,87 +910,88 @@ inline void Tz80::grJP(byte y) {
 	case 7:// EI
 		iff1 = iff2 = 1;
 		break;
-	default: ; //DgrJP(rPC, y, opcode);
 	}
 }
 
 inline void Tz80::grX3(byte y, byte z) {
 	word temp;
 	switch (z) {
-	case 0:// RET CC
+	case 0: // RET CC
+	    addTicks(1);
 		if (checkCC(y)) gotoaddr(opPOP());
 		break;
 	case 1:
 		grPOP(y);
 		break;
-	case 2:// JP CC,NN
-		temp=readNextWord();addTicks(6);
+	case 2: // JP CC,NN
+		temp = readNextWord();
 		if (checkCC(y)) gotoaddr(temp);
 		break;
 	case 3:
 		 grJP(y);
 		break;
-	case 4:// CALL CC,NN
-		temp = readNextWord(); addTicks(10);
+	case 4: // CALL CC,NN
+		temp = readNextWord();
 		if (checkCC(y)) {
+	        addTicks(1);
 			opPUSH(rPC);
 			gotoaddr(temp);
-			addTicks(17-10);
 		}
 		break;
 	case 5:
 		grPUSH(y);
 		break;
 	case 6:
-		opALU(y,readNextByte());
-		addTicks(7);
+		opALU(y, readNextByte());
 		break;
-	case 7:// RST N
+	case 7: // RST N
+	    addTicks(1);
 		opPUSH(rPC);
 		gotoaddr(y*8);
-		addTicks(11);
 		break;
-	default: ; //DgrX3 (rPC, y, z, opcode);
 	}
 }
 
 int Tz80::emul(dword opNum, dword tickNum) {
+    if (!opNum && !tickNum) return 0;
+    if(!tickNum) tickNum = opNum*16;
+    if(!opNum) opNum = tickNum;
     z80io.iTicks = tickNum;
-	z80io.iTicksCounter = 0;
 	qword endOp = opNum + z80io.opCounter;
-	do {
-		if(haltstate) break;
+	while((!haltstate && (z80io.opCounter < endOp) && (z80io.iTicksCounter < z80io.iTicks))
+	    || xdprefix || edprefix) {
 		opcode = readNextByte();
-		int z = opcode & 7;
-		int y = (opcode >> 3) & 7;
-		int x = (opcode >> 6) & 3;
-		switch (x) {
-        case 0:
-            grX0(y, z);
-            break;
-        case 1:
-            opLD8(y, z);
-            break;
-        case 2:
-            opALU(y, getrr(z));
-            break;
-        case 3:
-            grX3(y, z);
-            break;
-        default: ; //Demul(rPC, opcode);
-		}
-		rR++;
-		if (xdprefix != 0) {
-			if((opcode != 0xdd) && (opcode != 0xfd)) {
-				xdprefix = 0; ir = 0;
-			} else continue;
-		}
-		z80io.opCounter++; addTicks(4);
-	} while((z80io.opCounter < endOp) && (z80io.iTicksCounter < z80io.iTicks));
-	return 0;
+        addTicks(1);
+        if (edprefix) {
+            grED();
+        } else {
+            int z = opcode & 7;
+            int y = (opcode >> 3) & 7;
+            int x = (opcode >> 6) & 3;
+            switch (x) {
+            case 0:
+                grX0(y, z);
+                break;
+            case 1:
+                opLD8(y, z);
+                break;
+            case 2:
+                opALU(y, getrr(z));
+                break;
+            case 3:
+                grX3(y, z);
+                break;
+            }
+        }
+		if (xdprefix && (opcode != 0xdd) && (opcode != 0xfd)) xdprefix = ir = 0;
+		rR = (rR & 128)|(++rR & 127);
+		z80io.opCounter++;
+	}
+	return z80io.iTicksCounter;
 }
 
 void Tz80::doInterrupt() {
+	z80io.iTicksCounter = 0;
 	if (iff1) {
         haltstate = iff2 = iff1 = 0;
 		opPUSH(rPC);

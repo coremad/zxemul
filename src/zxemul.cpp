@@ -11,9 +11,11 @@ Tz80 z80;
 TSNA SNA;
 Tzx48 zx48;
 
+uint32_t itacts = 69888;
+
 extern int bindex;
 extern int border;
-extern int blines[240];
+extern int blines[];
 
 void Tzx48::init() {
     z80io.reset();
@@ -24,7 +26,10 @@ void Tzx48::init() {
 void Tzx48::emul() {
     bindex = 0;
 	z80.doInterrupt();
-	z80.emul(71680, 71680);
+	z80.emul(itacts, itacts);
+//	z80.emul(71680, 71680);
+//	z80.emul(69888, 69888);
+//	z80.emul(65150, 65150);
 //	z80.emul(100, 100);
 	if (--flashcounter == 0) {
 		flash ^= 1; flashcounter = 15;
@@ -147,7 +152,6 @@ extern "C" {
         z80.r16_1[rDE] = SNA.DE1;
         z80.r16_1[rBC] = SNA.BC1;
         z80.rAF1 = SNA.AF1;
-//        z80.iff1 = ( SNA.IFF >> 1 )& 1;
         z80.iff2 = z80.iff1 = SNA.IFF;
         z80.rR = SNA.R;
         z80.r16[rHL] = SNA.HL;
@@ -160,8 +164,8 @@ extern "C" {
         z80.IM = SNA.IM;
         z80.rPC = z80io.readByte(z80.r16[rSP]) | (z80io.readByte(z80.r16[rSP] + 1) << 8);
         z80.r16[rSP] += 2;
-        z80.haltstate = 0;
         border = SNA.Border;
+        z80.emul(itacts, itacts);
     }
 
     void saveSNA48k() {
@@ -170,7 +174,7 @@ extern "C" {
         SNA.DE1 = z80.r16_1[rDE];
         SNA.BC1 = z80.r16_1[rBC];
         SNA.AF1 = z80.rAF1;
-        SNA.IFF = z80.iff1;
+        SNA.IFF = z80.iff1 << 2;
         SNA.R = z80.rR;
         SNA.HL = z80.r16[rHL];
         SNA.DE = z80.r16[rDE];
