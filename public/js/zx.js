@@ -18,32 +18,42 @@ const ifile = document.getElementById('file-input');
 const islider = document.getElementById("iRange");
 const itacts = document.getElementById("itacts");
 const czx = document.getElementById("zx");
+const mbut = document.getElementById("dropbtn")
+
 
 const ctx = canvas.getContext('2d');
+
+mbut.onclick = function() {
+    document.getElementById("myDropdown").classList.toggle("show");
+}
 
 if (ctx) {
     function toHex(d, n = 4) {
         return (d+0x10000).toString(16).substr(-n).toUpperCase();
     }
-
+    var showregs = 0;
+    var showregsA;
+    var zx;
+    const maxStr = 60;
+    var str = 0;
     ctx.canvas.width  = width;
     ctx.canvas.height  = height;
     fetch("js/zxemul.wasm")
       .then((response) => response.arrayBuffer())
-      .then((bytes) => WebAssembly.instantiate(bytes, importObject))
+      .then((bytes) => WebAssembly.instantiate(bytes))
       .then((results) => {
         console.log(results.instance);
-        const zx = new TZX(results.instance, width, height);
+        zx = new TZX(results.instance, width, height);
         zx.init();
 
         pbutton.onclick = pause;
         cbutton.onclick = reset;
 
         islider.value = zx.itacts[0];
-        itacts.innerHTML = islider.value;
+        itacts.innerHTML = ("000000" + zx.itacts[0]).slice(-6);
         islider.oninput = function() {
             zx.itacts[0] = this.value;
-            itacts.innerHTML = this.value;
+            itacts.innerHTML = ("000000" + this.value).slice(-6);
         }
 
         ifile.type = 'file';
@@ -75,7 +85,6 @@ if (ctx) {
             for (var i = 0; i< buf.byteLength; i++) sna[i + 27] = zx.zxmem[i + 16384];
             for (var i = 0; i <  27; i++) sna[i] = zx.sna[i];
             var blob = new Blob([sna], {type: "application/octet-stream"});
-//            console.log(blob);
             saveAs(blob, "snapshot.sna");
             pause();
         };
@@ -97,7 +106,7 @@ if (ctx) {
         for(let i = 0; i < elements.length; i++) elements[i].onclick = function (e) {
                 zx.itacts[0] = e.target.getAttribute("data");
                 islider.value = zx.itacts[0];
-                itacts.innerHTML = islider.value;
+                itacts.innerHTML = ("000000" + zx.itacts[0]).slice(-6);
             }
 
         const fkempston = {kLeft:1, kRigth:2, kUp:4, kDown:8, kFire:16};
@@ -125,8 +134,7 @@ if (ctx) {
 
         ctx.fillStyle = "red";
         ctx.font = "16px mono";
-        const maxStr = 48;
-        var str = 0;
+
         function go() {
             const start = performance.now();
             zx.emul_active = 1;
@@ -139,7 +147,7 @@ if (ctx) {
                 if (zx.haltstate()) hstr += ' HALT';
                 ctx.fillText(hstr, 2, 16);
                 const timeTaken = (performance.now() - start);
-                html_fps.innerHTML = timeTaken;
+                html_fps.innerHTML = timeTaken.toFixed(2);
                 var opCounter = zx.opCounter();
                 var regs = " PC: " + toHex(zx.z80[0])
                     + " AF: " + toHex(zx.z80[1])
@@ -152,15 +160,19 @@ if (ctx) {
                     + " OP: " + toHex(zx.opcode(), 2);
                 debug2.innerHTML = regs;
                 if ((opCounter >= 0) && (str <= maxStr)) {
-                    debug.innerHTML += "<br>" + opCounter + regs;
+                    debug.innerHTML += "<br>" + " " + opCounter + regs;
                     str++;
+//                    showregs = 0;
                 }
             }
         }
         function pause() {
             if(!pause.active) pause.active = 0;
             if (pause.active ^= 1) pause.intervalID = setInterval(go, interval)
-            else clearInterval(pause.intervalID);
+            else {
+                clearInterval(pause.intervalID);
+                ctx.fillText("PAUSED", 2, height - 16);
+            }
         }
 
         function checkKeys(event) {

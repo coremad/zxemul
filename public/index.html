@@ -15,52 +15,64 @@
     </div>
     <div>
       <div>
-        <button class="fetch_sna">deathchase</button>
-        <button class="fetch_sna">ikari</button>
-        <button class="fetch_sna">spyhunt</button>
-        <button class="fetch_sna">dizzy2</button>
-        <button class="fetch_sna">dizzy3</button>
-        <button class="fetch_sna">dizzy5</button>
-        <button class="fetch_sna">darkf</button>
-        <button class="fetch_sna">saboteur</button>
-        <button class="fetch_sna">barb</button>
-        <button class="fetch_sna">rickd</button>
-      </div>
-      <div>
-        <button class="fetch_sna">elite</button>
-        <button class="fetch_sna">dandare</button>
-        <button class="fetch_sna">mig29</button>
-        <button class="fetch_sna">bdash</button>
-        <button class="fetch_sna">quazatron</button>
-        <button class="fetch_sna">nethere</button>
-        <button class="fetch_sna">renegade</button>
-        <button class="fetch_sna">rraid</button>
-        <button class="fetch_sna">nebulus</button>
-        <button class="fetch_sna">ffood</button>
-      </div>
-      <div>
+          <div class="dropdown">
+              <button id="dropbtn">Samples</button>
+              <div id="myDropdown" class="dropdown-content">
+                  <div class="sna_menu">
+                    <button class="fetch_sna">deathchase</button>
+                    <button class="fetch_sna">ikari</button>
+                    <button class="fetch_sna">spyhunt</button>
+                    <button class="fetch_sna">dizzy2</button>
+                    <button class="fetch_sna">dizzy3</button>
+                    <button class="fetch_sna">dizzy5</button>
+                    <button class="fetch_sna">darkf</button>
+                    <button class="fetch_sna">saboteur</button>
+                    <button class="fetch_sna">saboteur2</button>
+                    <button class="fetch_sna">barb</button>
+                    <button class="fetch_sna">rickd</button>
+                    <button class="fetch_sna">asterix</button>
+                    <button class="fetch_sna">bjack</button>
+                    <button class="fetch_sna">rtype</button>
+                  </div>
+                <div class="sna_menu">
+                  <button class="fetch_sna">elite</button>
+                  <button class="fetch_sna">dandare</button>
+                  <button class="fetch_sna">mig29</button>
+                  <button class="fetch_sna">bdash</button>
+                  <button class="fetch_sna">quazatron</button>
+                  <button class="fetch_sna">nethere</button>
+                  <button class="fetch_sna">renegade</button>
+                  <button class="fetch_sna">rraid</button>
+                  <button class="fetch_sna">nebulus</button>
+                  <button class="fetch_sna">ffood</button>
+                  <button class="fetch_sna">zombi</button>
+                  <button class="fetch_sna">pacmania</button>
+                  <button class="fetch_sna">bmxsim</button>
+                  <button class="fetch_sna">ghost</button>
+                </div>
+
+              </div>
+          </div>
         <button id="pbutton">Pause</button>
         <button id="cbutton">Reset</button>
         <button id="rlbutton">Refresh</button>
         <button id="lbutton">Load</button>
         <button id="sbutton">Save</button>
-        Render: <span id="fps"></span> msec
+        <span class="render">RENDER: <span id="fps"></span> msec </span>
         <input id="file-input" type="file" accept=".sna, .SNA" name="name" style="display: none;" />
       </div>
-      <div id="models">Timings:
+      <div id="models"><span id="timings">TIMINGS: </span>
         <button class="model" data="69888" id="zx48kbutton" >ZX Spectrum 48K</button>
         <button class="model" data="70908" id="zx128kbutton">ZX Spectrum 128K</button>
         <button class="model" data="71680" id="p48kbutton">Pentagon</button>
         <button class="model" data="20" id="1KHz">1KHz</button>
-<!--        <button class="model" data="100" id="5KHz">5KHz</button>-->
-<!--        <button class="model" data="1000" id="50KHz">50KHz</button>-->
         <button class="model" data="20000" id="1MHz">1MHz</button>
         <button class="model" data="70000" id="3.5MHz">3.5MHz</button>
         <button class="model" data="140000" id="7MHz">7MHz</button>
       </div>
       <div class="slidecontainer">
         <span id="itacts"></span>
-        <input type="range" min="1" max="280000" value="71680" class="slider" id="iRange">
+        <input type="range" min="1" max="200000" value="71680" class="slider" id="iRange">
       </div>
       <span id="status"></span>
       <div id="ddebug2"><span id="debug2"></span></div>

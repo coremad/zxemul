@@ -152,7 +152,7 @@ extern "C" {
         z80.r16_1[rDE] = SNA.DE1;
         z80.r16_1[rBC] = SNA.BC1;
         z80.rAF1 = SNA.AF1;
-        z80.iff2 = z80.iff1 = SNA.IFF;
+        z80.iff2 = z80.iff1 = SNA.IFF >> 2;
         z80.rR = SNA.R;
         z80.r16[rHL] = SNA.HL;
         z80.r16[rDE] = SNA.DE;
@@ -165,7 +165,7 @@ extern "C" {
         z80.rPC = z80io.readByte(z80.r16[rSP]) | (z80io.readByte(z80.r16[rSP] + 1) << 8);
         z80.r16[rSP] += 2;
         border = SNA.Border;
-        z80.emul(itacts, itacts);
+//        z80.emul(itacts, itacts);
     }
 
     void saveSNA48k() {

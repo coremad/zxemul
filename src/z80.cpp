@@ -2,6 +2,7 @@
 #include "z80.h"
 
 extern  Tz80io z80io;
+    int tested = 0;
 
 inline uint parity(byte x) {
 	static const byte partab[16] ={ fPV, 0, 0, fPV, 0, fPV, fPV, 0, 0, fPV, fPV, 0, fPV, 0, 0, fPV };
@@ -89,7 +90,7 @@ inline void Tz80::setrr(byte rr, byte val) {
         writeByte(r16[rHL], val);
         return;
     }
-    if (ir == 0) imm=readNextByte();
+    if (!ir) imm = readNextByte();
     writeByte(r16[indexreg] + imm, val);
     addTicks(5);
     ir = 1;
@@ -128,7 +129,7 @@ inline word Tz80::get16r(byte rr) {
 	else if (xdprefix == 0)
 		return r16[rHL];
 	else
-	return r16[indexreg];
+	    return r16[indexreg];
 }
 
 inline void Tz80::set16r(byte rr, word nn) {
@@ -195,8 +196,9 @@ inline void Tz80::opDEC8(byte r) {	//printf("Dec8 %x\n",opcode);
 }
 
 inline void Tz80::opLD8imm(byte r) {//printf("LD8imm ");
-	if (xdprefix != 0) {
-		imm = readNextByte(); ir = 1;
+	if (xdprefix != 0 && r == rrM) {
+		imm = readNextByte();
+		ir = 1;
 	}
     byte temp = readNextByte();
     setrr(r, temp);
@@ -343,8 +345,8 @@ inline void Tz80::grX0Z7(byte y) {
 			if (hd)	acu -= 0x160;
 		} else {
 			if ((rF & fH) || (temp > 9)) {
-				if (temp > 9) rF|=fH;
-				else rF&=~fH;
+				if (temp > 9) rF |= fH;
+				else rF &= ~fH;
 				acu += 6;
 			}
 			if (cbits || ((acu & 0x1f0) > 0x90)) acu += 0x60;
@@ -357,8 +359,7 @@ inline void Tz80::grX0Z7(byte y) {
 	case 5:	// CPL
 		temp = temp ^ 0xff;
 		rA = temp & 255;
-		setflag(fN);
-		setflag(fH);
+		setflag(fN | fH);
 		break;
 	case 6:	// SCF
 		rAF = (rAF&~0x3b)|((rAF>>8)&0x28)|1;
@@ -809,9 +810,9 @@ inline void Tz80::grPOP(byte y) {
 	}
 }
 
-inline void Tz80::rotateCB(byte y, byte z) {//{rotRLC,rotRRC,rotRL,rotRR,rotSLA,rotSRA,rotSLL,rotSRL};
+inline void Tz80::rotateCB(byte y, byte z, byte reg) {//{rotRLC,rotRRC,rotRL,rotRR,rotSLA,rotSRA,rotSLL,rotSRL};
 	int temp, cbits;
-	int reg = getrrcb(z);
+//	int reg = getrrcb(z);
 	switch(y) {
 	case rotRLC:
 		temp = (reg << 1) | (reg >> 7);
@@ -857,25 +858,30 @@ inline void Tz80::grCB() {
 	addTicks(4);
 	if (xdprefix && !ir) imm = readNextByte();
 	opcode = readNextByte();
+//    if (xdprefix)
+//    tested = 1;
+//    if (tested) Dshowregs(0, xdprefix);
+
     z = opcode & 7;
     y = (opcode >> 3) & 7;
     x = (opcode >> 6) & 3;
+    byte val = getrrcb(z);
     switch (x) {
     case rotCB:
-        rotateCB(y, z);
+        rotateCB(y, z, val);
         break;
     case bitCB:// BIT y,z;
-        acu = getrrcb(z);
+        acu = val;
         if (acu & (1 << y))
             rF = (rF & ~0xfe) | 0x10 |((y == 7) << 7);
         else
             rF = (rF & ~0xfe) | 0x54;
         break;
     case resCB: // RES y,z
-        setrrcb(z, getrrcb(z) & (~(1 << y)));
+        setrrcb(z, val & (~(1 << y)));
         break;
     case setCB:// opSET y,z
-        setrrcb(z, getrrcb(z) | (1 << y));
+        setrrcb(z, val | (1 << y));
         break;
     }
 }
@@ -888,6 +894,8 @@ inline void Tz80::grJP(byte y) {
 		break;
 	case 1:// CB PREFIX
 		grCB();
+//		if (tested) Dshowregs(1, xdprefix);
+//		tested = 0;
 		break;
 	case 2:// OUT (N),A
 		writePort(readNextByte() | (rA<<8), rA);
@@ -960,7 +968,9 @@ int Tz80::emul(dword opNum, dword tickNum) {
 	qword endOp = opNum + z80io.opCounter;
 	while((!haltstate && (z80io.opCounter < endOp) && (z80io.iTicksCounter < z80io.iTicks))
 	    || xdprefix || edprefix) {
+
 		opcode = readNextByte();
+		rR = (rR & 128)|(++rR & 127);
         addTicks(1);
         if (edprefix) {
             grED();
@@ -984,7 +994,6 @@ int Tz80::emul(dword opNum, dword tickNum) {
             }
         }
 		if (xdprefix && (opcode != 0xdd) && (opcode != 0xfd)) xdprefix = ir = 0;
-		rR = (rR & 128)|(++rR & 127);
 		z80io.opCounter++;
 	}
 	return z80io.iTicksCounter;

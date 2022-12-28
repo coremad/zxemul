@@ -136,7 +136,7 @@ private:
 	void opSET(byte y, byte z);
 	void opRES(byte y, byte z);
 	void opBIT(byte y, byte z);
-	void rotateCB(byte y, byte z);
+	void rotateCB(byte y, byte z, byte val);
 	void grCB();
 	void grJP(byte y);
 	void grX3(byte y, byte z);
