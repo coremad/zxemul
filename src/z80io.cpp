@@ -12,6 +12,9 @@ void Tz80io::reset() {
 	    = ZXKeyboard.kf7 = ZXKeyboard.kef = ZXKeyboard.kdf
 	    = ZXKeyboard.kbf = ZXKeyboard.k7f = 0xbf;
 	ZXKeyboard.pfe = 0;
+	kempston = 0;
+	border = 7;
+	bindex = 0;
 }
 
 byte Tz80io::readByte(word addr) {
@@ -69,7 +72,7 @@ byte Tz80io::readPort(word port) {
             default: //printf("inport:%x\n",port);
                 keys = ZXKeyboard.pfe;
             }
-            keys |= iTicksCounter & 64;
+//            keys |= iTicksCounter & 64;
             return keys;
         break;
     case 31:

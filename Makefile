@@ -12,7 +12,7 @@ CXXFLAGS	= $(CFLAGS) \
 			-std=c++17
 
 all:
-	clang++ $(CXXFLAGS) -o public/js/zxemul.wasm src/zxemul.cpp src/z80.cpp src/z80io.cpp
+	clang++ $(CXXFLAGS) -o public/js/zxemul.wasm src/zxemul.cpp src/z80.cpp src/z80io.cpp src/snapshots.cpp
 
 clean:
 	rm -f public/js/zxemul.wasm

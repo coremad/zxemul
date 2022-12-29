@@ -2,7 +2,12 @@
 #include "z80.h"
 
 extern  Tz80io z80io;
-    int tested = 0;
+
+#ifdef DEBUG
+extern void dumpregs();
+extern void wtf(char const * msg);
+extern void wtf2(char const * msg, int i);
+#endif
 
 inline uint parity(byte x) {
 	static const byte partab[16] ={ fPV, 0, 0, fPV, 0, fPV, fPV, 0, 0, fPV, fPV, 0, fPV, 0, 0, fPV };
@@ -19,6 +24,9 @@ inline void Tz80::addTicks(int ticks) {
 	z80io.iTicksCounter += ticks;
 }
 
+inline void Tz80::incR(int val) {
+    rR = (rR & 128) | ((rR + val) & 127);
+}
 
 inline byte Tz80::readByte(word addr) {
     addTicks(3);
@@ -60,7 +68,7 @@ inline word Tz80::readNextWord() {
 inline byte Tz80::getrr(byte rr) {
     if(rr == rrA) return rA;
     if((rr < rrM && !xdprefix) || (rr < rrL)) return r8[rr ^ 1];
-    if(rr < rrM) return r8[4 + (rr ^ 1)];
+    if(rr < rrM) return r8[(indexreg * 2) + ((rr ^ 1) & 1)];
     if(!xdprefix) return readByte(r16[rHL]);
     if(ir == 0) imm = readNextByte();
     ir = 1;
@@ -83,7 +91,7 @@ inline void Tz80::setrr(byte rr, byte val) {
 		return;
 	}
     if(rr < rrM) {
-        r8[4 + (rr ^ 1)] = val;
+        r8[(indexreg * 2) + ((rr ^ 1) & 1) ] = val;
         return;
     }
     if(!xdprefix) {
@@ -175,7 +183,7 @@ inline void Tz80::gotoaddr(word addr) {
 	rPC = addr;
 }
 
-inline void Tz80::opINC8(byte r) {	//printf("INC8 %x\n",opcode);
+inline void Tz80::opINC8(byte r) {
     if (r == rrM) addTicks(1);
 	byte temp = getrr(r) + 1;
 	rF=(rF & ~0xfe) | (temp & 0xa8) |
@@ -185,7 +193,7 @@ inline void Tz80::opINC8(byte r) {	//printf("INC8 %x\n",opcode);
 	setrr(r, temp);
 }
 
-inline void Tz80::opDEC8(byte r) {	//printf("Dec8 %x\n",opcode);
+inline void Tz80::opDEC8(byte r) {
     if (r == rrM) addTicks(1);
 	byte temp = getrr(r) - 1;
 	rF = (rF & ~0xfe) | (temp & 0x80) |
@@ -195,7 +203,7 @@ inline void Tz80::opDEC8(byte r) {	//printf("Dec8 %x\n",opcode);
 	setrr(r, temp);
 }
 
-inline void Tz80::opLD8imm(byte r) {//printf("LD8imm ");
+inline void Tz80::opLD8imm(byte r) {
 	if (xdprefix != 0 && r == rrM) {
 		imm = readNextByte();
 		ir = 1;
@@ -415,11 +423,11 @@ inline void Tz80::opLD8(int y, int z) {
 	}
 }
 
-inline void Tz80::setflag(byte ff){
+void Tz80::setflag(byte ff){
 	rF |= ff;
 };
 
-inline void Tz80::resflag(byte ff){
+void Tz80::resflag(byte ff){
 	rF &= (ff ^ 0xff);
 };
 
@@ -428,7 +436,7 @@ inline byte Tz80::fgetC() {
 };
 
 inline void Tz80::opALU(byte y, byte n){ //{aluADD,aluADC,aluSUB,aluSBC,aluAND,aluXOR,aluOR,aluCP};
-	int temp,cbits;
+	int temp, cbits;
 	switch(y) {
 	case aluADD:	//ADD A,
 		temp = rA + n;
@@ -484,7 +492,7 @@ inline void Tz80::opALU(byte y, byte n){ //{aluADD,aluADC,aluSUB,aluSBC,aluAND,a
 			(((cbits >> 6) ^ (cbits >> 5)) & 4) | 2 |
 			(cbits & 0x10) | ((cbits >> 8) & 1);
 		break;
-	default: ; //DopALU (rPC, y, n, opcode);
+//	default: ; //DopALU (rPC, y, n, opcode);
 	}
 }
 
@@ -543,18 +551,21 @@ inline void Tz80::grBLI(byte a, byte b) {
 		case 6:// LDIR
 			r16[rHL]++; r16[rDE]++;
 			if (r16[rBC] > 0) {
+                if (r16[rDE] != rPC - 1) edprefix = 1;
                 gotoaddr(rPC - 1);
-                edprefix = 1;
             }
 			break;
 		case 7:// LDDR
 			r16[rHL]--; r16[rDE]--;
 			if (r16[rBC] > 0) {
+                if (r16[rDE] != rPC - 1) edprefix = 1;
                 gotoaddr(rPC - 1);
-                edprefix = 1;
             }
 			break;
-//		default: ; DgrBLI (rPC, a, b, opcode);
+		default: ;// DgrBLI (rPC, a, b, opcode);
+#ifdef DEBUG
+            wtf("DgrBLI LD");
+#endif
 		}
 		break;
 	case 1:
@@ -580,10 +591,16 @@ inline void Tz80::grBLI(byte a, byte b) {
                 edprefix = 1;
             }
 			break;
-//		default: ; DgrBLI (rPC, a, b, opcode);
+		default: ;// DgrBLI (rPC, a, b, opcode);
+#ifdef DEBUG
+        wtf("DgrBLI CP");
+#endif
 		}
 		break;
-//	default: ; DgrBLI (rPC, a, b, opcode);
+	default: ;// DgrBLI (rPC, a, b, opcode);
+#ifdef DEBUG
+        wtf("DgrBLI");
+#endif
 	}
 }
 
@@ -717,19 +734,24 @@ inline void Tz80::grEDX1(byte y, byte z) {
 			rAF = (acu << 8) | (acu & 0xa8) | (((acu & 0xff) == 0) << 6) |
 				parity(acu) | (rAF & 1);
 			break;
-//		default: ; DgrEDX1Z7 (rPC, y, z, opcode);
+		default: ;// DgrEDX1Z7 (rPC, y, z, opcode);
+#ifdef DEBUG
+        wtf("DgrEDX1Z7");
+#endif
 		}
 		break;
-//	default: ; DgrEDX1Z7 (rPC, y, z, opcode);
+	default: ;// DgrEDX1Z7 (rPC, y, z, opcode);
+#ifdef DEBUG
+        wtf("DgrEDX1");
+#endif
 	};
 };
 
 inline void Tz80::grED() {
-	byte x,y,z;
     edprefix = 0;
-	z = opcode & 7;
-	y = (opcode >> 3) & 7;
-	x = (opcode >> 6) & 3;
+	byte z = opcode & 7;
+	byte y = (opcode >> 3) & 7;
+	byte x = (opcode >> 6) & 3;
 	switch(x) {
 		case 1:
 			grEDX1(y,z);
@@ -738,6 +760,13 @@ inline void Tz80::grED() {
 			grBLI(y,z);
 			break;
 	default: ; //DgrED (rPC, x, y, z, opcode);
+    #ifdef DEBUG
+            wtf("grED");
+            wtf2("opcode:", opcode);
+            wtf2("x:", x);
+            wtf2("y:", y);
+            wtf2("z:", z);
+    #endif
 	}
 }
 
@@ -761,12 +790,18 @@ inline void Tz80::grPUSH(byte y) {
 			xdprefix = 0xdd; indexreg = rIX; ir = 0;
 			break;
 		case 2:// ED prefix
-			grED();
+//			grED();
 			edprefix = 1;
 			break;
 		case 3:// FD prefix
 			xdprefix = 0xfd; indexreg = rIY; ir = 0;
 			break;
+		default:;
+		#ifdef DEBUG
+                wtf("grPUSH");
+                wtf2("y=", y);
+                wtf2("p=", p);
+        #endif
 		}
 		break;
 	}
@@ -855,12 +890,12 @@ inline void Tz80::rotateCB(byte y, byte z, byte reg) {//{rotRLC,rotRRC,rotRL,rot
 
 inline void Tz80::grCB() {
 	byte x, y, z, acu;
-	addTicks(4);
+	addTicks(4); incR(1);
 	if (xdprefix && !ir) imm = readNextByte();
+    #ifdef DEBUG
+            dumpregs();
+    #endif
 	opcode = readNextByte();
-//    if (xdprefix)
-//    tested = 1;
-//    if (tested) Dshowregs(0, xdprefix);
 
     z = opcode & 7;
     y = (opcode >> 3) & 7;
@@ -968,9 +1003,11 @@ int Tz80::emul(dword opNum, dword tickNum) {
 	qword endOp = opNum + z80io.opCounter;
 	while((!haltstate && (z80io.opCounter < endOp) && (z80io.iTicksCounter < z80io.iTicks))
 	    || xdprefix || edprefix) {
-
+#ifdef DEBUG
+        dumpregs();
+#endif
 		opcode = readNextByte();
-		rR = (rR & 128)|(++rR & 127);
+		incR(1);
         addTicks(1);
         if (edprefix) {
             grED();
@@ -996,6 +1033,7 @@ int Tz80::emul(dword opNum, dword tickNum) {
 		if (xdprefix && (opcode != 0xdd) && (opcode != 0xfd)) xdprefix = ir = 0;
 		z80io.opCounter++;
 	}
+	incR((z80io.iTicks - z80io.iTicksCounter) & 0xff);
 	return z80io.iTicksCounter;
 }
 
@@ -1004,7 +1042,7 @@ void Tz80::doInterrupt() {
 	if (iff1) {
         haltstate = iff2 = iff1 = 0;
 		opPUSH(rPC);
-		if (IM == 2) rPC = readWord((rIR & 0xff00) + 255);
+		if (IM == 2) rPC = readWord((rIR & 0xff00) + 0xff);
 		else rPC = 0x38;
 	}
 }

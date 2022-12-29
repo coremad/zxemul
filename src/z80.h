@@ -3,7 +3,7 @@
 
 #include "z80io.h"
 
-enum regs8{rC, rB, rE, rD, rL, rH, rXL, rXH, rYL, rYH};
+enum regs8{rC, rB, rE, rD, rL, rH, rSPL, SPH, rXL, rXH, rYL, rYH};
 enum regs16{rBC, rDE, rHL, rSP, rIX, rIY};
 
 enum z80cc {cNZ, cZ, cNC, cC, cPO, cPE, cP, cM};
@@ -66,6 +66,8 @@ public:
 	void reset();
 	int emul(dword opNum, dword tickNum);
 	void doInterrupt();
+	void setflag(byte ff);
+	void resflag(byte ff);
 
 private:
 	byte readByte(word addr);
@@ -76,9 +78,11 @@ private:
 	void opPUSH(word nn);
 	word readWord(word  addr);
 	void writeWord(word addr, word imm);
-	void addTicks(int ticks);
 	byte readNextByte();
 	word readNextWord();
+
+	void addTicks(int ticks);
+    void incR(int val);
 
 	byte getrr(byte rr);
 	byte getrrN(byte rr);
@@ -116,8 +120,6 @@ private:
 	void grX0Z7(byte y);
 	void grX0(byte y, byte z);
 	void opLD8(int y, int z);
-	void setflag(byte ff);
-	void resflag(byte ff);
 	void opALU(byte y, byte n);
 	byte fgetC();
 	word getrp2(byte rp2);
@@ -142,6 +144,8 @@ private:
 	void grX3(byte y, byte z);
 	void errorpref();
 };
+
+extern byte zxmem[];
 
 #endif //_Z80_H_
 
