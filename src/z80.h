@@ -3,20 +3,20 @@
 
 #include "z80io.h"
 
-enum regs8{rC, rB, rE, rD, rL, rH, rSPL, SPH, rXL, rXH, rYL, rYH};
-enum regs16{rBC, rDE, rHL, rSP, rIX, rIY};
+enum regs8 { rC, rB, rE, rD, rL, rH, rSPL, SPH, rXL, rXH, rYL, rYH };
+enum regs16 { rBC, rDE, rHL, rSP, rIX, rIY };
 
-enum z80cc {cNZ, cZ, cNC, cC, cPO, cPE, cP, cM};
-enum z80flags {fC=1, fN=2, fPV=4, fF3=8, fH=16, fF5=32, fZ=64, fS=128};
+enum z80cc { cNZ, cZ, cNC, cC, cPO, cPE, cP, cM };
+enum z80flags { fC=1, fN=2, fPV=4, fF3=8, fH=16, fF5=32, fZ=64, fS=128 };
 
-enum rp1 {rp1BC, rp1DE, rp1HL, rp1SP};
-enum rp2 {rp2BC, rp2DE, rp2HL, rp2AF};
+enum rp1 { rp1BC, rp1DE, rp1HL, rp1SP };
+enum rp2 { rp2BC, rp2DE, rp2HL, rp2AF };
 
-enum rr {rrC, rrB, rrE, rrD, rrL, rrH, rrM, rrA};
-enum alu {aluADD, aluADC, aluSUB, aluSBC, aluAND, aluXOR, aluOR, aluCP};
+enum rr { rrC, rrB, rrE, rrD, rrL, rrH, rrM, rrA };
+enum alu { aluADD, aluADC, aluSUB, aluSBC, aluAND, aluXOR, aluOR, aluCP };
 
-enum pCB {rotCB, bitCB, resCB, setCB};
-enum rot {rotRLC, rotRRC, rotRL, rotRR, rotSLA, rotSRA, rotSLL, rotSRL};
+enum pCB { rotCB, bitCB, resCB, setCB };
+enum rot { rotRLC, rotRRC, rotRL, rotRR, rotSLA, rotSRA, rotSLL, rotSRL };
 
 class Tz80 {
 public:
@@ -66,10 +66,11 @@ public:
 	void reset();
 	int emul(dword opNum, dword tickNum);
 	void doInterrupt();
+
+private:
 	void setflag(byte ff);
 	void resflag(byte ff);
 
-private:
 	byte readByte(word addr);
 	void writeByte(word addr, byte val);
 	byte readPort(word addr);

@@ -68,7 +68,7 @@ inline word Tz80::readNextWord() {
 inline byte Tz80::getrr(byte rr) {
     if(rr == rrA) return rA;
     if((rr < rrM && !xdprefix) || (rr < rrL)) return r8[rr ^ 1];
-    if(rr < rrM) return r8[(indexreg * 2) + ((rr ^ 1) & 1)];
+    if(rr < rrM) return r8[(indexreg << 1) + ((rr ^ 1) & 1)];
     if(!xdprefix) return readByte(r16[rHL]);
     if(ir == 0) imm = readNextByte();
     ir = 1;
@@ -91,7 +91,7 @@ inline void Tz80::setrr(byte rr, byte val) {
 		return;
 	}
     if(rr < rrM) {
-        r8[(indexreg * 2) + ((rr ^ 1) & 1) ] = val;
+        r8[(indexreg << 1) + ((rr ^ 1) & 1) ] = val;
         return;
     }
     if(!xdprefix) {
@@ -423,11 +423,11 @@ inline void Tz80::opLD8(int y, int z) {
 	}
 }
 
-void Tz80::setflag(byte ff){
+inline void Tz80::setflag(byte ff){
 	rF |= ff;
 };
 
-void Tz80::resflag(byte ff){
+inline void Tz80::resflag(byte ff){
 	rF &= (ff ^ 0xff);
 };
 
@@ -550,16 +550,16 @@ inline void Tz80::grBLI(byte a, byte b) {
 			break;
 		case 6:// LDIR
 			r16[rHL]++; r16[rDE]++;
-			if (r16[rBC] > 0) {
-                if (r16[rDE] != rPC - 1) edprefix = 1;
-                gotoaddr(rPC - 1);
+			if (r16[rBC]) {
+                addTicks(5);
+                gotoaddr(rPC - 2);
             }
 			break;
 		case 7:// LDDR
 			r16[rHL]--; r16[rDE]--;
-			if (r16[rBC] > 0) {
-                if (r16[rDE] != rPC - 1) edprefix = 1;
-                gotoaddr(rPC - 1);
+			if (r16[rBC]) {
+                addTicks(5);
+                gotoaddr(rPC - 2);
             }
 			break;
 		default: ;// DgrBLI (rPC, a, b, opcode);
@@ -579,16 +579,16 @@ inline void Tz80::grBLI(byte a, byte b) {
 			break;
 		case 6:// CPIR
 			r16[rHL]++;
-			if ((r16[rBC] > 0) && ((rF & fZ) == 0)) {
-                gotoaddr(rPC - 1);
-                edprefix = 1;
+			if ((r16[rBC]) && ((rF & fZ) == 0)) {
+                addTicks(5);
+                gotoaddr(rPC - 2);
 			}
 			break;
 		case 7:// CPDR
 			r16[rHL]--;
-			if ((r16[rBC] > 0) && ((rF & fZ) == 0)) {
-                gotoaddr(rPC - 1);
-                edprefix = 1;
+			if ((r16[rBC]) && ((rF & fZ) == 0)) {
+                addTicks(5);
+                gotoaddr(rPC - 2);
             }
 			break;
 		default: ;// DgrBLI (rPC, a, b, opcode);
@@ -893,7 +893,7 @@ inline void Tz80::grCB() {
 	addTicks(4); incR(1);
 	if (xdprefix && !ir) imm = readNextByte();
     #ifdef DEBUG
-            dumpregs();
+//            dumpregs();
     #endif
 	opcode = readNextByte();
 
@@ -1004,7 +1004,7 @@ int Tz80::emul(dword opNum, dword tickNum) {
 	while((!haltstate && (z80io.opCounter < endOp) && (z80io.iTicksCounter < z80io.iTicks))
 	    || xdprefix || edprefix) {
 #ifdef DEBUG
-        dumpregs();
+//        dumpregs();
 #endif
 		opcode = readNextByte();
 		incR(1);
