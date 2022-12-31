@@ -19,6 +19,7 @@ const islider = document.getElementById("iRange");
 const itacts = document.getElementById("itacts");
 const czx = document.getElementById("zx");
 const mbut = document.getElementById("dropbtn")
+const tape_button = document.getElementById("tape_button")
 
 
 const ctx = canvas.getContext('2d');
@@ -44,7 +45,7 @@ fetch("js/zxemul.wasm")
   .then((response) => response.arrayBuffer())
   .then((bytes) => WebAssembly.instantiate(bytes))
   .then((results) => {
-    console.log(results.instance);
+//    console.log(results.instance);
     zx = new TZX(results.instance, width, height);
     zx.init();
 
@@ -105,6 +106,25 @@ fetch("js/zxemul.wasm")
             pause();
         }
 
+    tape_button.onclick = function(e) {
+        pause();
+        console.log('tape');
+        loadTAPE("roms/BEYOND4K.TAP");
+        zx.startTape();
+        console.log(zx.tapeStarted[0]);
+        pause();
+    }
+
+    async function loadTAPE(tape) {
+        var resp = await fetch(tape);
+        var blob = await resp.blob();
+        var buf = await blob.arrayBuffer();
+        var tape = new Uint8Array(buf);
+        var len = Math.min(buf.byteLength, 256*1024);
+        zx.tapeSize[0] = len;
+        for (var i = 0; i < len; i++) zx.tape[i] = tape[i];
+    }
+
     elements = document.getElementsByClassName("model");
     for(let i = 0; i < elements.length; i++) elements[i].onclick = function (e) {
             zx.itacts[0] = e.target.getAttribute("data");
@@ -149,6 +169,9 @@ fetch("js/zxemul.wasm")
             hstr = "IFF: " + zx.iff1state() + " IM: " + zx.imstate() + " IR: " + toHex(zx.irstate());
             if (zx.haltstate()) hstr += ' HALT';
             ctx.fillText(hstr, 2, 16);
+
+            if (zx.tapeStarted[0]) ctx.fillText("TAPE " + zx.block[0], width - 64 - 16, height - 16);
+
             const timeTaken = (performance.now() - start);
             html_fps.innerHTML = timeTaken.toFixed(2);
             var opCounter = zx.opCounter();
@@ -624,6 +647,7 @@ class TZX {
         this.imstate = ws.exports.imstate;
         this.irstate = ws.exports.irstate;
         this.opcode = ws.exports.opcode;
+        this.startTape = ws.exports.startTape;
         this.initSNA48k = ws.exports.initSNA48k;
         this.dumpSNA48k = ws.exports.dumpSNA48k;
         this.zxmem = new Uint8Array(this.buffer, ws.exports.zxmem, 65536);
@@ -632,6 +656,10 @@ class TZX {
         this.ZXKeyboard = new Uint8Array(this.buffer, ws.exports.ZXKeyboard, 8);;
         this.kempston = new Uint32Array(this.buffer, ws.exports.kempston, 1);
         this.itacts = new Uint32Array(this.buffer, ws.exports.itacts, 1);
+        this.tapeStarted = new Uint32Array(this.buffer, ws.exports.tapeStarted, 1);
+        this.tapeSize = new Uint32Array(this.buffer, ws.exports.tapeSize, 1);
+        this.block = new Uint32Array(this.buffer, ws.exports.block, 1);
+        this.tape = new Uint8Array(this.buffer, ws.exports.ltape, 256*1024);
         this.loadROM();
         this.init();
         this.emul_active = 0;
@@ -642,12 +670,14 @@ class TZX {
         var blob = await resp.blob();
         var buf = await blob.arrayBuffer();
         var sna = new Uint8Array(buf);
-        var len = Math.max(buf.byteLength - 27, 48*1024);
+        var len = Math.min(buf.byteLength - 27, 48*1024);
+//        console.log(len);
         for (var i = 0; i < len; i++)
             this.zxmem[i + 16384] = sna[i+27];
         for (var i = 0; i <  27; i++) this.sna[i] = sna[i];
         this.initSNA48k();
     }
+
     async loadROM() {
         var resp = await fetch("roms/48.rom");
         var blob = await resp.blob();
