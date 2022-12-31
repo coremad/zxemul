@@ -147,6 +147,7 @@ private:
 };
 
 extern byte zxmem[];
+extern Tz80 z80;
 
 #endif //_Z80_H_
 

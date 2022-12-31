@@ -428,7 +428,7 @@ inline void Tz80::setflag(byte ff){
 };
 
 inline void Tz80::resflag(byte ff){
-	rF &= (ff ^ 0xff);
+	rF &= ff ^ 0xff;
 };
 
 inline byte Tz80::fgetC() {
@@ -893,7 +893,7 @@ inline void Tz80::grCB() {
 	addTicks(4); incR(1);
 	if (xdprefix && !ir) imm = readNextByte();
     #ifdef DEBUG
-//            dumpregs();
+            dumpregs();
     #endif
 	opcode = readNextByte();
 
@@ -1004,7 +1004,7 @@ int Tz80::emul(dword opNum, dword tickNum) {
 	while((!haltstate && (z80io.opCounter < endOp) && (z80io.iTicksCounter < z80io.iTicks))
 	    || xdprefix || edprefix) {
 #ifdef DEBUG
-//        dumpregs();
+        dumpregs();
 #endif
 		opcode = readNextByte();
 		incR(1);
