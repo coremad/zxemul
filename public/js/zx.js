@@ -127,7 +127,7 @@ fetch("js/zxemul.wasm")
 
     elements = document.getElementsByClassName("model");
     for(let i = 0; i < elements.length; i++) elements[i].onclick = function (e) {
-            zx.itacts[0] = e.target.getAttribute("data");
+            zx.itacts[0] = e.target.getAttribute("data-t");
             islider.value = zx.itacts[0];
             itacts.innerHTML = ("000000" + zx.itacts[0]).slice(-6);
         }

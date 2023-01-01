@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>ZX Spectrum - UNDER CONSTRUCTION</title>
-  <link href="css/styles.css" type="text/css" rel="stylesheet" />
+  <link href="css/styles.css" type="text/css" rel="stylesheet" >
   <script src = "https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js" integrity="sha512-csNcFYJniKjJxRWRV1R7fvnXrycHP6qDR21mgz1ZP55xY5d+aHLfo9/FcGDQLfn2IfngbAHd8LdfsagcCqgTcQ==" crossorigin = "anonymous" referrerpolicy = "no-referrer"> </script>
   <script src="js/zx.js"></script>
 </head>
@@ -11,7 +11,7 @@
   <div id="zx">
     <div id="content">
       <canvas id="canvas"></canvas>
-      <img src="img/keyboard.jpg" width="640px">
+      <img src="img/keyboard.jpg" width="640" alt="ZX keyboard">
     </div>
     <div>
       <div>
@@ -65,16 +65,16 @@
         <button id="sbutton">Save</button>
 
         <span class="render">RENDER: <span id="fps"></span> msec </span>
-        <input id="file-input" type="file" accept=".sna, .SNA" name="name" style="display: none;" />
+        <input id="file-input" type="file" accept=".sna, .SNA" name="name" style="display: none;" >
       </div>
       <div id="models"><span id="timings">TIMINGS: </span>
-        <button class="model" data="69888" id="zx48kbutton" >ZX Spectrum 48K</button>
-        <button class="model" data="70908" id="zx128kbutton">ZX Spectrum 128K</button>
-        <button class="model" data="71680" id="p48kbutton">Pentagon</button>
-        <button class="model" data="20" id="1KHz">1KHz</button>
-        <button class="model" data="20000" id="1MHz">1MHz</button>
-        <button class="model" data="70000" id="3.5MHz">3.5MHz</button>
-        <button class="model" data="140000" id="7MHz">7MHz</button>
+        <button class="model" data-t="69888" id="zx48k" >ZX Spectrum 48K</button>
+        <button class="model" data-t="70908" id="zx128k">ZX Spectrum 128K</button>
+        <button class="model" data-t="71680" id="p48k">Pentagon</button>
+        <button class="model" data-t="20" id="1KHz">1KHz</button>
+        <button class="model" data-t="20000" id="1MHz">1MHz</button>
+        <button class="model" data-t="70000" id="3.5MHz">3.5MHz</button>
+        <button class="model" data-t="140000" id="7MHz">7MHz</button>
       </div>
       <div class="slidecontainer">
         <span id="itacts"></span>
