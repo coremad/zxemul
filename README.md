@@ -4,6 +4,6 @@
 Under construction...
 
 Temporary testing(IPv6 only):
-https://madcored.chickenkiller.com/
+https://zx.madcore.fun/ (self-signed certificate yet)
 or
-http://madcored.chickenkiller.com/ (but gamepad work only with https)
+http://zx.madcore.fun/ (but gamepad work with HTTPS only on FireFox)
