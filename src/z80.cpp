@@ -1,27 +1,30 @@
 #include <stdint.h>
 #include "z80.h"
 
-extern  Tz80io z80io;
-
 #ifdef DEBUG
 extern void dumpregs();
 extern void wtf(char const * msg);
 extern void wtf2(char const * msg, int i);
 #endif
 
+
+void Tz80::init(Tz80io * io) {
+    z80io = io;
+}
+
+void Tz80::reset() {
+	z80io->tickCounter = rPC = rAF = rAF1 = rIR = xdprefix = opcode = iff1 = iff2 = haltstate = IM = 0;
+	for (int i = 0; i < 6; i++) r16[i] = 0; for (int i = 0; i < 4; i++) r16_1[i] = 0;
+}
+
 inline uint parity(byte x) {
 	static const byte partab[16] ={ fPV, 0, 0, fPV, 0, fPV, fPV, 0, 0, fPV, fPV, 0, fPV, 0, 0, fPV };
 	return ((partab[x & 0xf] + (partab[x >> 4])) & 4)^4;
 }
 
-void Tz80::reset() {
-	z80io.tickCounter = z80io.opCounter = rPC = rAF = rAF1 = rIR = xdprefix = opcode = iff1 = iff2 = haltstate = IM = 0;
-	for (int i = 0; i < 6; i++) r16[i] = 0; for (int i = 0; i < 4; i++) r16_1[i] = 0;
-}
-
 inline void Tz80::addTicks(int ticks) {
-	z80io.tickCounter += ticks;
-	z80io.iTicksCounter += ticks;
+	z80io->tickCounter += ticks;
+	z80io->iTicksCounter += ticks;
 }
 
 inline void Tz80::incR(int val) {
@@ -30,22 +33,22 @@ inline void Tz80::incR(int val) {
 
 inline byte Tz80::readByte(word addr) {
     addTicks(3);
-    return z80io.readByte(addr);
+    return z80io->readByte(addr);
 }
 
 inline void Tz80::writeByte(word addr, byte val) {
     addTicks(3);
-    z80io.writeByte(addr, val);
+    z80io->writeByte(addr, val);
 }
 
 inline byte Tz80::readPort(word addr) {
     addTicks(4);
-    return z80io.readPort(addr);
+    return z80io->readPort(addr);
 }
 
 inline void Tz80::writePort(word addr, byte val) {
     addTicks(4);
-    z80io.writePort(addr, val);
+    z80io->writePort(addr, val);
 }
 
 inline word Tz80::readWord(word addr) {
@@ -432,7 +435,7 @@ inline void Tz80::resflag(byte ff){
 };
 
 inline byte Tz80::fgetC() {
-	return(rF&1);
+	return(rF & 1);
 };
 
 inline void Tz80::opALU(byte y, byte n){ //{aluADD,aluADC,aluSUB,aluSBC,aluAND,aluXOR,aluOR,aluCP};
@@ -995,17 +998,19 @@ inline void Tz80::grX3(byte y, byte z) {
 	}
 }
 
-int Tz80::emul(dword opNum, dword tickNum) {
-    if (!opNum && !tickNum) return 0;
-    if(!tickNum) tickNum = opNum*16;
-    if(!opNum) opNum = tickNum;
-    z80io.iTicks = tickNum;
-	qword endOp = opNum + z80io.opCounter;
-	while((!haltstate && (z80io.opCounter < endOp) && (z80io.iTicksCounter < z80io.iTicks))
-	    || xdprefix || edprefix) {
-#ifdef DEBUG
+//int Tz80::emul(dword opNum, dword tickNum) {
+int Tz80::emul(dword tickNum) {
+    if (!tickNum) return 0;
+//    if (!opNum && !tickNum) return 0;
+//    if(!tickNum) tickNum = opNum*16;
+//    if(!opNum) opNum = tickNum;
+    z80io->iTicks = tickNum;
+//	qword endOp = opNum + z80io->opCounter;
+//	while((!haltstate && (z80io->opCounter < endOp) && (z80io->iTicksCounter < z80io->iTicks)) || xdprefix || edprefix) {
+	while((!haltstate && (z80io->iTicksCounter < z80io->iTicks)) || xdprefix || edprefix) {
+        #ifdef DEBUG
         dumpregs();
-#endif
+        #endif
 		opcode = readNextByte();
 		incR(1);
         addTicks(1);
@@ -1031,14 +1036,14 @@ int Tz80::emul(dword opNum, dword tickNum) {
             }
         }
 		if (xdprefix && (opcode != 0xdd) && (opcode != 0xfd)) xdprefix = ir = 0;
-		z80io.opCounter++;
+//		z80io->opCounter++;
 	}
-	incR((z80io.iTicks - z80io.iTicksCounter) & 0xff);
-	return z80io.iTicksCounter;
+	incR((z80io->iTicks - z80io->iTicksCounter) & 0xff);
+	return z80io->iTicksCounter;
 }
 
 void Tz80::doInterrupt() {
-	z80io.iTicksCounter = 0;
+	z80io->iTicksCounter = 0;
 	if (iff1) {
         haltstate = iff2 = iff1 = 0;
 		opPUSH(rPC);

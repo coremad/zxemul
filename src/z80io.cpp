@@ -1,17 +1,12 @@
 #include "z80io.h"
-
-byte zxmem[65536];
-int blines[320];
-struct TZXKeyboard ZXKeyboard;
-int kempston;
-int border;
-int bindex;
+//#include "tape.h"
 
 void Tz80io::reset() {
 	ZXKeyboard.kfe = ZXKeyboard.kfd = ZXKeyboard.kfb
 	    = ZXKeyboard.kf7 = ZXKeyboard.kef = ZXKeyboard.kdf
 	    = ZXKeyboard.kbf = ZXKeyboard.k7f = 0xbf;
 	ZXKeyboard.pfe = 0;
+
 	kempston = 0;
 	border = 7;
 	bindex = 0;
@@ -41,7 +36,7 @@ void Tz80io::writePort(word port, byte n) {
 }
 
 byte Tz80io::readPort(word port) {
-    byte keys;
+    byte keys;// = 191;
     switch (port & 0xff) {
 	    case 0xfe:
             switch	(port) {
@@ -69,10 +64,14 @@ byte Tz80io::readPort(word port) {
             case 0x7ffe:
                 keys = ZXKeyboard.k7f;
                 break;
-            default: //printf("inport:%x\n",port);
+//            case 0x00fe:
+//                keys = ((!(iTicksCounter & 64)) & 0xff);
+//                break;
+            default:
                 keys = ZXKeyboard.pfe;
             }
-//            keys |= iTicksCounter & 64;
+//            keys |= getData(tickCounter);
+            keys |= iTicksCounter & 64;
             return keys;
         break;
     case 31:

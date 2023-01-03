@@ -19,7 +19,7 @@ const islider = document.getElementById("iRange");
 const itacts = document.getElementById("itacts");
 const czx = document.getElementById("zx");
 const mbut = document.getElementById("dropbtn")
-const tape_button = document.getElementById("tape_button")
+//const tape_button = document.getElementById("tape_button")
 
 
 const ctx = canvas.getContext('2d');
@@ -35,8 +35,10 @@ function toHex(d, n = 4) {
 var showregs = 0;
 var showregsA;
 var zx;
+
 const maxStr = 60;
 var str = 0;
+
 
 ctx.canvas.width  = width;
 ctx.canvas.height  = height;
@@ -133,7 +135,7 @@ fetch("js/zxemul.wasm")
         }
 
     const fkempston = {kLeft:1, kRigth:2, kUp:4, kDown:8, kFire:16};
-
+    var start_button = 0;
     window.addEventListener('gamepadconnected', (event) => {
       const update = () => {
         zx.kempston[0] = 0;
@@ -146,35 +148,42 @@ fetch("js/zxemul.wasm")
               if ((index == 1 || index == 5 ) && axis == 1 ) zx.kempston[0] |= fkempston.kUp;;
           }
           for (const [index, button] of gamepad.buttons.entries()) {
-            if (button.value != 0) zx.kempston[0] |= fkempston.kFire;;
+            if (index == 9) {
+                if (!start_button && button.pressed) {
+                    start_button = 1; pause();
+                } else if (start_button && !button.pressed) start_button = 0;
+            } else if (button.pressed) zx.kempston[0] |= fkempston.kFire;;
           }
         }
         requestAnimationFrame(update);
       };
       update();
     });
+
+//    go();
     pause();
 
     ctx.fillStyle = "red";
     ctx.font = "16px mono";
 
     function go() {
+        if (zx.emul_active || !zx.emul_ready) {
+            console.log("skip frame");
+            return;
+        }
         const start = performance.now();
         zx.emul_active = 1;
         zx.emul();
-        zx.emul_active = 0;
         ctx.putImageData(zx.myImageData, 0, 0);
         if (DEBUG) {
             var hstr = '';
             hstr = "IFF: " + zx.iff1state() + " IM: " + zx.imstate() + " IR: " + toHex(zx.irstate());
             if (zx.haltstate()) hstr += ' HALT';
             ctx.fillText(hstr, 2, 16);
-
-            if (zx.tapeStarted[0]) ctx.fillText("TAPE " + zx.block[0], width - 64 - 16, height - 16);
-
+//            if (zx.tapeStarted[0]) ctx.fillText("TAPE " + zx.block[0], width - 64 - 16, height - 16);
             const timeTaken = (performance.now() - start);
             html_fps.innerHTML = timeTaken.toFixed(2);
-            var opCounter = zx.opCounter();
+//            var opCounter = zx.opCounter();
             var regs = " PC: " + toHex(zx.z80[0])
                 + " AF: " + toHex(zx.z80[1])
                 + " BC: " + toHex(zx.z80[2])
@@ -185,13 +194,17 @@ fetch("js/zxemul.wasm")
                 + " IY: " + toHex(zx.z80[7])
                 + " OP: " + toHex(zx.opcode(), 2);
             debug2.innerHTML = regs;
-            if ((opCounter >= 0) && (str <= maxStr)) {
-                debug.innerHTML += "<br>" + " " + opCounter + regs;
+//            if ((opCounter >= 0) && (str <= maxStr)) {
+            if (str <= maxStr) {
+//                debug.innerHTML += "<br>" + " " + opCounter + regs;
+                debug.innerHTML += "<br>" + " " + regs;
                 str++;
 //                    showregs = 0;
             }
         }
+        zx.emul_active = 0;
     }
+
     function pause() {
         if(!pause.active) pause.active = 0;
         if (pause.active ^= 1) pause.intervalID = setInterval(go, interval)
@@ -625,6 +638,7 @@ fetch("js/zxemul.wasm")
 
 class TZX {
     constructor(ws, cwidth, cheight) {
+        this.emul_ready = 0;
         const align = 1024;
         var static_space = (~~(ws.exports.__data_end/align))*align;
         if (ws.exports.__data_end%align) static_space += align;
@@ -640,50 +654,55 @@ class TZX {
         this.data = this.myImageData.data;
         this.init = ws.exports.init;
         this.emul = ws.exports.emul;
-        this.opCounter = ws.exports.opCounter;
+//        this.opCounter = ws.exports.opCounter;
         this.haltstate = ws.exports.haltstate;
         this.iff1state = ws.exports.iff1state;
         this.iff2state = ws.exports.iff2state;
         this.imstate = ws.exports.imstate;
         this.irstate = ws.exports.irstate;
         this.opcode = ws.exports.opcode;
-        this.startTape = ws.exports.startTape;
+//        this.startTape = ws.exports.startTape;
         this.initSNA48k = ws.exports.initSNA48k;
         this.dumpSNA48k = ws.exports.dumpSNA48k;
-        this.zxmem = new Uint8Array(this.buffer, ws.exports.zxmem, 65536);
+        this.zxmem = new Uint8Array(this.buffer, ws.exports.pzxmem(), 65536);
         this.z80 = new Uint16Array(this.buffer, ws.exports.z80, 64);
         this.sna = new Uint8Array(this.buffer, ws.exports.SNA, 27);
-        this.ZXKeyboard = new Uint8Array(this.buffer, ws.exports.ZXKeyboard, 8);;
-        this.kempston = new Uint32Array(this.buffer, ws.exports.kempston, 1);
+        this.ZXKeyboard = new Uint8Array(this.buffer, ws.exports.pZXKeyboard(), 8);;
+        this.kempston = new Uint32Array(this.buffer, ws.exports.pkempston(), 1);
         this.itacts = new Uint32Array(this.buffer, ws.exports.itacts, 1);
-        this.tapeStarted = new Uint32Array(this.buffer, ws.exports.tapeStarted, 1);
-        this.tapeSize = new Uint32Array(this.buffer, ws.exports.tapeSize, 1);
-        this.block = new Uint32Array(this.buffer, ws.exports.block, 1);
-        this.tape = new Uint8Array(this.buffer, ws.exports.ltape, 256*1024);
+//        this.tapeStarted = new Uint32Array(this.buffer, ws.exports.tapeStarted, 1);
+//        this.tapeSize = new Uint32Array(this.buffer, ws.exports.tapeSize, 1);
+//        this.block = new Uint32Array(this.buffer, ws.exports.block, 1);
+  //      this.tape = new Uint8Array(this.buffer, ws.exports.ltape, 256*1024);
         this.loadROM();
         this.init();
+
         this.emul_active = 0;
     }
 
-    async loadSNA(sna) {
-        var resp = await fetch(sna);
-        var blob = await resp.blob();
-        var buf = await blob.arrayBuffer();
-        var sna = new Uint8Array(buf);
-        var len = Math.min(buf.byteLength - 27, 48*1024);
-//        console.log(len);
-        for (var i = 0; i < len; i++)
-            this.zxmem[i + 16384] = sna[i+27];
-        for (var i = 0; i <  27; i++) this.sna[i] = sna[i];
-        this.initSNA48k();
+    loadSNA(sna) {
+        this.emul_ready = 0;
+        fetch(sna)
+          .then((response) => response.arrayBuffer())
+          .then((buf) => {
+            const rom = new Uint8Array(buf);
+            const len = Math.min(buf.byteLength - 27, 48*1024);
+            for (var i = 0; i < len; i++) this.zxmem[i + 16384] = rom[i+27];
+            for (var i = 0; i <  27; i++) this.sna[i] = rom[i];
+            this.initSNA48k();
+            this.emul_ready = 1;
+          });
     }
 
-    async loadROM() {
-        var resp = await fetch("roms/48.rom");
-        var blob = await resp.blob();
-        var buf = await blob.arrayBuffer();
-        var sna = await new Uint8Array(buf);
-        for (var i = 0; i< 16384; i++) this.zxmem[i] = sna[i];
+    loadROM() {
+        this.emul_ready = 0;
+        fetch("roms/48.rom")
+        .then((resp) => resp.arrayBuffer())
+        .then((buf) => {
+            const rom = new Uint8Array(buf);
+            this.zxmem.set(rom);
+            this.emul_ready = 1;
+        });
     }
 }
 

@@ -63,11 +63,13 @@ public:
 	int indexreg;
 	int ir;
 
+    void init(Tz80io * io);
 	void reset();
-	int emul(dword opNum, dword tickNum);
+	int emul(dword tickNum);
 	void doInterrupt();
 
 private:
+    Tz80io * z80io;
 	void setflag(byte ff);
 	void resflag(byte ff);
 
