@@ -17,4 +17,6 @@ extern "C" {
     void dumpSNA48k();
 }
 
-#endif //_Z80_H_
+extern TSNA SNA;
+
+#endif //_SNAPSHOTS_H_

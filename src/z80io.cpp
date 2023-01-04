@@ -1,6 +1,10 @@
 #include "z80io.h"
 //#include "tape.h"
 
+#ifdef DEBUG
+#include "stdio.h"
+#endif
+
 void Tz80io::reset() {
 	ZXKeyboard.kfe = ZXKeyboard.kfd = ZXKeyboard.kfb
 	    = ZXKeyboard.kf7 = ZXKeyboard.kef = ZXKeyboard.kdf
@@ -36,6 +40,7 @@ void Tz80io::writePort(word port, byte n) {
 }
 
 byte Tz80io::readPort(word port) {
+
     byte keys;// = 191;
     switch (port & 0xff) {
 	    case 0xfe:
@@ -57,6 +62,10 @@ byte Tz80io::readPort(word port) {
                 break;
             case 0xdffe:
                 keys = ZXKeyboard.kdf;
+//            #ifdef DEBUG
+//            fprintf(stderr, "wtf?! port: %04x keys: %02x\n", port, keys);
+//            fprintf(stderr, "zxkeb: %x\n", &ZXKeyboard);
+//            #endif
                 break;
             case 0xbffe:
                 keys = ZXKeyboard.kbf;

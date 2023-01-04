@@ -43,7 +43,7 @@ var str = 0;
 ctx.canvas.width  = width;
 ctx.canvas.height  = height;
 
-fetch("js/zxemul.wasm")
+fetch("js/undead-zx.wasm")
   .then((response) => response.arrayBuffer())
   .then((bytes) => WebAssembly.instantiate(bytes))
   .then((results) => {
@@ -639,9 +639,6 @@ fetch("js/zxemul.wasm")
 class TZX {
     constructor(ws, cwidth, cheight) {
         this.emul_ready = 0;
-        const align = 1024;
-        var static_space = (~~(ws.exports.__data_end/align))*align;
-        if (ws.exports.__data_end%align) static_space += align;
         this.cwidth = cwidth;
         this.cheight = cheight;
         this.isize = cwidth*cheight;
@@ -654,14 +651,12 @@ class TZX {
         this.data = this.myImageData.data;
         this.init = ws.exports.init;
         this.emul = ws.exports.emul;
-//        this.opCounter = ws.exports.opCounter;
         this.haltstate = ws.exports.haltstate;
         this.iff1state = ws.exports.iff1state;
         this.iff2state = ws.exports.iff2state;
         this.imstate = ws.exports.imstate;
         this.irstate = ws.exports.irstate;
         this.opcode = ws.exports.opcode;
-//        this.startTape = ws.exports.startTape;
         this.initSNA48k = ws.exports.initSNA48k;
         this.dumpSNA48k = ws.exports.dumpSNA48k;
         this.zxmem = new Uint8Array(this.buffer, ws.exports.pzxmem(), 65536);
@@ -670,10 +665,6 @@ class TZX {
         this.ZXKeyboard = new Uint8Array(this.buffer, ws.exports.pZXKeyboard(), 8);;
         this.kempston = new Uint32Array(this.buffer, ws.exports.pkempston(), 1);
         this.itacts = new Uint32Array(this.buffer, ws.exports.itacts, 1);
-//        this.tapeStarted = new Uint32Array(this.buffer, ws.exports.tapeStarted, 1);
-//        this.tapeSize = new Uint32Array(this.buffer, ws.exports.tapeSize, 1);
-//        this.block = new Uint32Array(this.buffer, ws.exports.block, 1);
-  //      this.tape = new Uint8Array(this.buffer, ws.exports.ltape, 256*1024);
         this.loadROM();
         this.init();
 

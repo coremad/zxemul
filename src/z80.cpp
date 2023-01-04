@@ -1,20 +1,14 @@
 #include <stdint.h>
 #include "z80.h"
 
-#ifdef DEBUG
-extern void dumpregs();
-extern void wtf(char const * msg);
-extern void wtf2(char const * msg, int i);
-#endif
-
-
 void Tz80::init(Tz80io * io) {
     z80io = io;
 }
 
 void Tz80::reset() {
 	z80io->tickCounter = rPC = rAF = rAF1 = rIR = xdprefix = opcode = iff1 = iff2 = haltstate = IM = 0;
-	for (int i = 0; i < 6; i++) r16[i] = 0; for (int i = 0; i < 4; i++) r16_1[i] = 0;
+	for (int i = 0; i < 6; i++) r16[i] = 0;
+	for (int i = 0; i < 4; i++) r16_1[i] = 0;
 }
 
 inline uint parity(byte x) {
@@ -566,9 +560,6 @@ inline void Tz80::grBLI(byte a, byte b) {
             }
 			break;
 		default: ;// DgrBLI (rPC, a, b, opcode);
-#ifdef DEBUG
-            wtf("DgrBLI LD");
-#endif
 		}
 		break;
 	case 1:
@@ -595,15 +586,9 @@ inline void Tz80::grBLI(byte a, byte b) {
             }
 			break;
 		default: ;// DgrBLI (rPC, a, b, opcode);
-#ifdef DEBUG
-        wtf("DgrBLI CP");
-#endif
 		}
 		break;
 	default: ;// DgrBLI (rPC, a, b, opcode);
-#ifdef DEBUG
-        wtf("DgrBLI");
-#endif
 	}
 }
 
@@ -738,15 +723,9 @@ inline void Tz80::grEDX1(byte y, byte z) {
 				parity(acu) | (rAF & 1);
 			break;
 		default: ;// DgrEDX1Z7 (rPC, y, z, opcode);
-#ifdef DEBUG
-        wtf("DgrEDX1Z7");
-#endif
 		}
 		break;
 	default: ;// DgrEDX1Z7 (rPC, y, z, opcode);
-#ifdef DEBUG
-        wtf("DgrEDX1");
-#endif
 	};
 };
 
@@ -763,13 +742,6 @@ inline void Tz80::grED() {
 			grBLI(y,z);
 			break;
 	default: ; //DgrED (rPC, x, y, z, opcode);
-    #ifdef DEBUG
-            wtf("grED");
-            wtf2("opcode:", opcode);
-            wtf2("x:", x);
-            wtf2("y:", y);
-            wtf2("z:", z);
-    #endif
 	}
 }
 
@@ -800,11 +772,6 @@ inline void Tz80::grPUSH(byte y) {
 			xdprefix = 0xfd; indexreg = rIY; ir = 0;
 			break;
 		default:;
-		#ifdef DEBUG
-                wtf("grPUSH");
-                wtf2("y=", y);
-                wtf2("p=", p);
-        #endif
 		}
 		break;
 	}
@@ -895,9 +862,6 @@ inline void Tz80::grCB() {
 	byte x, y, z, acu;
 	addTicks(4); incR(1);
 	if (xdprefix && !ir) imm = readNextByte();
-    #ifdef DEBUG
-            dumpregs();
-    #endif
 	opcode = readNextByte();
 
     z = opcode & 7;
@@ -932,8 +896,6 @@ inline void Tz80::grJP(byte y) {
 		break;
 	case 1:// CB PREFIX
 		grCB();
-//		if (tested) Dshowregs(1, xdprefix);
-//		tested = 0;
 		break;
 	case 2:// OUT (N),A
 		writePort(readNextByte() | (rA<<8), rA);
@@ -998,19 +960,10 @@ inline void Tz80::grX3(byte y, byte z) {
 	}
 }
 
-//int Tz80::emul(dword opNum, dword tickNum) {
 int Tz80::emul(dword tickNum) {
     if (!tickNum) return 0;
-//    if (!opNum && !tickNum) return 0;
-//    if(!tickNum) tickNum = opNum*16;
-//    if(!opNum) opNum = tickNum;
     z80io->iTicks = tickNum;
-//	qword endOp = opNum + z80io->opCounter;
-//	while((!haltstate && (z80io->opCounter < endOp) && (z80io->iTicksCounter < z80io->iTicks)) || xdprefix || edprefix) {
 	while((!haltstate && (z80io->iTicksCounter < z80io->iTicks)) || xdprefix || edprefix) {
-        #ifdef DEBUG
-        dumpregs();
-        #endif
 		opcode = readNextByte();
 		incR(1);
         addTicks(1);
@@ -1036,9 +989,8 @@ int Tz80::emul(dword tickNum) {
             }
         }
 		if (xdprefix && (opcode != 0xdd) && (opcode != 0xfd)) xdprefix = ir = 0;
-//		z80io->opCounter++;
 	}
-	incR((z80io->iTicks - z80io->iTicksCounter) & 0xff);
+	if (haltstate) incR(((z80io->iTicks - z80io->iTicksCounter) >> 2) & 0xff);
 	return z80io->iTicksCounter;
 }
 
