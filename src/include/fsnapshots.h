@@ -3,7 +3,8 @@
 
 #include "snapshots.h"
 
-extern void loadSNA48k(const char * fname);
+extern int loadSNA48k(const char * fname);
+extern int loadROM48k(const char * fname);
 extern Tz80io z80io;
 
 #endif //_FSNAPSHOTS_H_

@@ -6,7 +6,6 @@ extern Tz80 z80;
 extern Tz80io z80io;
 
 void initSNA48k() {
-//    zx48.init();
     z80io.reset();
 	z80.reset();
     z80.rI = SNA.I;
@@ -24,7 +23,6 @@ void initSNA48k() {
     z80.rAF = SNA.AF;
     z80.r16[rSP] = SNA.SP;
     z80.IM = SNA.IM;
-//    z80.rPC = z80io.readByte(z80.r16[rSP]) | (z80io.readByte(z80.r16[rSP] + 1) << 8);
     z80.rPC = z80io.zxmem[z80.r16[rSP]] | ((z80io.zxmem[z80.r16[rSP] + 1]) << 8);
     z80.r16[rSP] += 2;
     z80io.border = SNA.Border;

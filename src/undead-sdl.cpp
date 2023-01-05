@@ -83,12 +83,10 @@ void	checkKeys(int event, int state) {
 				z80io.ZXKeyboard.kbf |= (0x10);
 		break;
 	case SDLK_j:
-	        fprintf(stderr, "SDLK_j b: %02x\n", z80io.ZXKeyboard.kbf);
 			if (state)
 				z80io.ZXKeyboard.kbf &= (~0x8);
 			else
 				z80io.ZXKeyboard.kbf |= (0x8);
-	        fprintf(stderr, "SDLK_j a: %02x\n", z80io.ZXKeyboard.kbf);
 		break;
 	case SDLK_k:
 			if (state)
@@ -353,7 +351,7 @@ Uint32 callback (Uint32 minterval, void* param) {
     return minterval;
 }
 
-int main(){
+int main() {
 
 	if ( SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_JOYSTICK ) < 0 ) {
 		fprintf(stderr, "Unable init SDL: %s\n", SDL_GetError());
@@ -367,18 +365,9 @@ int main(){
    		fprintf(stderr, "Unable to set video mode: %s\n", SDL_GetError());
 		exit(1);
 	}
-    zx48.init((Uint32 *)screen->pixels);
-	FILE * romfile = fopen("roms/48.rom","r");
-	if (!romfile) {
-	    fprintf(stderr, "Can`t open ROM file\n");
-		exit(1);
-	}
-	if (!fread(&z80io.zxmem[0], 16384, 1, romfile)) {
-	    fprintf(stderr, "Can`t read ROM file\n");
-		exit(1);
-	}
-	fclose(romfile);
 
+	zx48.init((Uint32 *)screen->pixels);
+	loadROM48k("roms/48.rom");
 
     timerID = SDL_AddTimer(interval, (SDL_NewTimerCallback)callback, (void*)"wtf");
     if(!timerID) fprintf(stderr, "timerID: %s\n", SDL_GetError());
