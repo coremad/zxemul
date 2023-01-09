@@ -1,7 +1,7 @@
 #ifndef _SNAPSHOTS_H_
 #define _SNAPSHOTS_H_
 
-#include "z80.h"
+#include "zdefs.h"
 
 struct TSNA {
 	byte I;

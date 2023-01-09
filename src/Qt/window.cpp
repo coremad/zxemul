@@ -3,6 +3,7 @@
 
 #include "zxemul.h"
 #include "fsnapshots.h"
+#include "tape.h"
 
 #include <QGridLayout>
 #include <QLabel>
@@ -53,6 +54,13 @@ void Window::keyPressEvent(QKeyEvent *e) {
     case Qt::Key_F8:
         loadSNA48k("roms/pacmania.sna");
         break;
+    case Qt::Key_F9:
+        loadSNA48k("roms/tape.sna");
+        break;
+//    case Qt::Key_F1:
+//        initTape(z80io.tickCounter);
+//        break;
+
     default:
         checkKeys(e, 1);
         break;
@@ -65,308 +73,79 @@ void Window::keyReleaseEvent(QKeyEvent *e) {
 
 void Window::checkKeys(QKeyEvent * event, int state) {
     switch(event->key()) {
-    case Qt::Key_Control:
-            if (state)
-                z80io.ZXKeyboard.kfe &= (~0x1);
-            else
-                z80io.ZXKeyboard.kfe |= (0x1);
-        break;
-    case Qt::Key_Z:
-            if (state)
-                z80io.ZXKeyboard.kfe &= (~0x2);
-            else
-                z80io.ZXKeyboard.kfe |= (0x2);
-        break;
-    case Qt::Key_X:
-            if (state)
-                z80io.ZXKeyboard.kfe &= (~0x4);
-            else
-                z80io.ZXKeyboard.kfe |= (0x4);
-        break;
-    case Qt::Key_C:
-            if (state)
-                z80io.ZXKeyboard.kfe &= (~0x8);
-            else
-                z80io.ZXKeyboard.kfe |= (0x8);
-        break;
-    case Qt::Key_V:
-            if (state)
-                z80io.ZXKeyboard.kfe &= (~0x10);
-            else
-                z80io.ZXKeyboard.kfe |= (0x10);
-        break;
+    case Qt::Key_Control: z80io.setKey(ZX_KeyRow_CShift, ZX_KeyBit_CShift, state); break;
+    case Qt::Key_Z: z80io.setKey(ZX_KeyRow_Z, ZX_KeyBit_Z, state); break;
+    case Qt::Key_X: z80io.setKey(ZX_KeyRow_X, ZX_KeyBit_X, state); break;
+    case Qt::Key_C: z80io.setKey(ZX_KeyRow_C, ZX_KeyBit_C, state); break;
+    case Qt::Key_V: z80io.setKey(ZX_KeyRow_V, ZX_KeyBit_V, state); break;
 
-    case Qt::Key_A:
-            if (state)
-                z80io.ZXKeyboard.kfd &= (~0x1);
-            else
-                z80io.ZXKeyboard.kfd |= (0x1);
-        break;
-    case Qt::Key_S:
-            if (state)
-                z80io.ZXKeyboard.kfd &= (~0x2);
-            else
-                z80io.ZXKeyboard.kfd |= (0x2);
-        break;
-    case Qt::Key_D:
-            if (state)
-                z80io.ZXKeyboard.kfd &= (~0x4);
-            else
-                z80io.ZXKeyboard.kfd |= (0x4);
-        break;
-    case Qt::Key_F:
-            if (state)
-                z80io.ZXKeyboard.kfd &= (~0x8);
-            else
-                z80io.ZXKeyboard.kfd |= (0x8);
-        break;
-    case Qt::Key_G:
-            if (state)
-                z80io.ZXKeyboard.kfd &= (~0x10);
-            else
-                z80io.ZXKeyboard.kfd |= (0x10);
-        break;
+    case Qt::Key_A: z80io.setKey(ZX_KeyRow_A, ZX_KeyBit_A, state); break;
+    case Qt::Key_S: z80io.setKey(ZX_KeyRow_S, ZX_KeyBit_S, state); break;
+    case Qt::Key_D: z80io.setKey(ZX_KeyRow_D, ZX_KeyBit_D, state); break;
+    case Qt::Key_F: z80io.setKey(ZX_KeyRow_F, ZX_KeyBit_F, state); break;
+    case Qt::Key_G: z80io.setKey(ZX_KeyRow_G, ZX_KeyBit_G, state); break;
 
-    case Qt::Key_H:
-            if (state)
-                z80io.ZXKeyboard.kbf &= (~0x10);
-            else
-                z80io.ZXKeyboard.kbf |= (0x10);
-        break;
-    case Qt::Key_J:
-            if (state)
-                z80io.ZXKeyboard.kbf &= (~0x8);
-            else
-                z80io.ZXKeyboard.kbf |= (0x8);
-        break;
-    case Qt::Key_K:
-            if (state)
-                z80io.ZXKeyboard.kbf &= (~0x4);
-            else
-                z80io.ZXKeyboard.kbf |= (0x4);
-        break;
-    case Qt::Key_L:
-            if (state)
-                z80io.ZXKeyboard.kbf &= (~0x2);
-            else
-                z80io.ZXKeyboard.kbf |= (0x2);
-        break;
-    case Qt::Key_Return:
-            if (state)
-                z80io.ZXKeyboard.kbf &= (~0x1);
-            else
-                z80io.ZXKeyboard.kbf |= (0x1);
-        break;
+    case Qt::Key_H: z80io.setKey(ZX_KeyRow_H, ZX_KeyBit_H, state); break;
+    case Qt::Key_J: z80io.setKey(ZX_KeyRow_J, ZX_KeyBit_J, state); break;
+    case Qt::Key_K: z80io.setKey(ZX_KeyRow_K, ZX_KeyBit_K, state); break;
+    case Qt::Key_L: z80io.setKey(ZX_KeyRow_L, ZX_KeyBit_L, state); break;
+    case Qt::Key_Return: z80io.setKey(ZX_KeyRow_Enter, ZX_KeyBit_Enter, state); break;
 
-    case Qt::Key_Q:
-            if (state)
-                z80io.ZXKeyboard.kfb &= (~0x1);
-            else
-                z80io.ZXKeyboard.kfb |= (0x1);
-        break;
-    case Qt::Key_W:
-            if (state)
-                z80io.ZXKeyboard.kfb &= (~0x2);
-            else
-                z80io.ZXKeyboard.kfb |= (0x2);
-        break;
-    case Qt::Key_E:
-            if (state)
-                z80io.ZXKeyboard.kfb &= (~0x4);
-            else
-                z80io.ZXKeyboard.kfb |= (0x4);
-        break;
-    case Qt::Key_R:
-            if (state)
-                z80io.ZXKeyboard.kfb &= (~0x8);
-            else
-                z80io.ZXKeyboard.kfb |= (0x8);
-        break;
-    case Qt::Key_T:
-            if (state)
-                z80io.ZXKeyboard.kfb &= (~0x10);
-            else
-                z80io.ZXKeyboard.kfb |= (0x10);
-        break;
+    case Qt::Key_Q: z80io.setKey(ZX_KeyRow_Q, ZX_KeyBit_Q, state); break;
+    case Qt::Key_W: z80io.setKey(ZX_KeyRow_W, ZX_KeyBit_W, state); break;
+    case Qt::Key_E: z80io.setKey(ZX_KeyRow_E, ZX_KeyBit_E, state); break;
+    case Qt::Key_R: z80io.setKey(ZX_KeyRow_R, ZX_KeyBit_R, state); break;
+    case Qt::Key_T: z80io.setKey(ZX_KeyRow_T, ZX_KeyBit_T, state); break;
 
-    case Qt::Key_P:
-            if (state)
-                z80io.ZXKeyboard.kdf &= (~0x1);
-            else
-                z80io.ZXKeyboard.kdf |= (0x1);
-        break;
-    case Qt::Key_O:
-            if (state)
-                z80io.ZXKeyboard.kdf &= (~0x2);
-            else
-                z80io.ZXKeyboard.kdf |= (0x2);
-        break;
-    case Qt::Key_I:
-            if (state)
-                z80io.ZXKeyboard.kdf &= (~0x4);
-            else
-                z80io.ZXKeyboard.kdf |= (0x4);
-        break;
-    case Qt::Key_U:
-            if (state)
-                z80io.ZXKeyboard.kdf &= (~0x8);
-            else
-                z80io.ZXKeyboard.kdf |= (0x8);
-        break;
-    case Qt::Key_Y:
-            if (state)
-                z80io.ZXKeyboard.kdf &= (~0x10);
-            else
-                z80io.ZXKeyboard.kdf |= (0x10);
-        break;
+    case Qt::Key_P: z80io.setKey(ZX_KeyRow_P, ZX_KeyBit_P, state); break;
+    case Qt::Key_O: z80io.setKey(ZX_KeyRow_O, ZX_KeyBit_O, state); break;
+    case Qt::Key_I: z80io.setKey(ZX_KeyRow_I, ZX_KeyBit_I, state); break;
+    case Qt::Key_U: z80io.setKey(ZX_KeyRow_U, ZX_KeyBit_U, state); break;
+    case Qt::Key_Y: z80io.setKey(ZX_KeyRow_Y, ZX_KeyBit_Y, state); break;
 
-    case Qt::Key_1:
-            if (state)
-                z80io.ZXKeyboard.kf7 &= (~0x1);
-            else
-                z80io.ZXKeyboard.kf7 |= (0x1);
-        break;
-    case Qt::Key_2:
-            if (state)
-                z80io.ZXKeyboard.kf7 &= (~0x2);
-            else
-                z80io.ZXKeyboard.kf7 |= (0x2);
-        break;
-    case Qt::Key_3:
-            if (state)
-                z80io.ZXKeyboard.kf7 &= (~0x4);
-            else
-                z80io.ZXKeyboard.kf7 |= (0x4);
-        break;
-    case Qt::Key_4:	//z80.debug=1;
-            if (state)
-                z80io.ZXKeyboard.kf7 &= (~0x8);
-            else
-                z80io.ZXKeyboard.kf7 |= (0x8);
-        break;
-    case Qt::Key_5:
-            if (state)
-                z80io.ZXKeyboard.kf7 &= (~0x10);
-            else
-                z80io.ZXKeyboard.kf7 |= (0x10);
-        break;
+    case Qt::Key_1: z80io.setKey(ZX_KeyRow_1, ZX_KeyBit_1, state); break;
+    case Qt::Key_2: z80io.setKey(ZX_KeyRow_2, ZX_KeyBit_2, state); break;
+    case Qt::Key_3: z80io.setKey(ZX_KeyRow_3, ZX_KeyBit_3, state); break;
+    case Qt::Key_4:	z80io.setKey(ZX_KeyRow_4, ZX_KeyBit_4, state); break;
+    case Qt::Key_5: z80io.setKey(ZX_KeyRow_5, ZX_KeyBit_5, state); break;
 
-    case Qt::Key_0:
-            if (state)
-                z80io.ZXKeyboard.kef &= (~0x1);
-            else
-                z80io.ZXKeyboard.kef |= (0x1);
-        break;
-    case Qt::Key_9:
-            if (state)
-                z80io.ZXKeyboard.kef &= (~0x2);
-            else
-                z80io.ZXKeyboard.kef |= (0x2);
-        break;
-    case Qt::Key_8:
-            if (state)
-                z80io.ZXKeyboard.kef &= (~0x4);
-            else
-                z80io.ZXKeyboard.kef |= (0x4);
-        break;
-    case Qt::Key_7:
-            if (state)
-                z80io.ZXKeyboard.kef &= (~0x8);
-            else
-                z80io.ZXKeyboard.kef |= (0x8);
-        break;
-    case Qt::Key_6:
-            if (state)
-                z80io.ZXKeyboard.kef &= (~0x10);
-            else
-                z80io.ZXKeyboard.kef |= (0x10);
-        break;
+    case Qt::Key_0: z80io.setKey(ZX_KeyRow_0, ZX_KeyBit_0, state); break;
+    case Qt::Key_9: z80io.setKey(ZX_KeyRow_9, ZX_KeyBit_9, state); break;
+    case Qt::Key_8: z80io.setKey(ZX_KeyRow_8, ZX_KeyBit_8, state); break;
+    case Qt::Key_7: z80io.setKey(ZX_KeyRow_7, ZX_KeyBit_7, state); break;
+    case Qt::Key_6: z80io.setKey(ZX_KeyRow_6, ZX_KeyBit_6, state); break;
 
-    case Qt::Key_Space:
-            if (state)
-                z80io.ZXKeyboard.k7f &= (~0x1);
-            else
-                z80io.ZXKeyboard.k7f |= (0x1);
-        break;
-    case Qt::Key_Shift:
-            if (state)
-                z80io.ZXKeyboard.k7f &= (~0x2);
-            else
-                z80io.ZXKeyboard.k7f |= (0x2);
-        break;
-    case Qt::Key_M:
-            if (state)
-                z80io.ZXKeyboard.k7f &= (~0x4);
-            else
-                z80io.ZXKeyboard.k7f |= (0x4);
-        break;
-    case Qt::Key_N:
-            if (state)
-                z80io.ZXKeyboard.k7f &= (~0x8);
-            else
-                z80io.ZXKeyboard.k7f |= (0x8);
-        break;
-    case Qt::Key_B:
-            if (state)
-                z80io.ZXKeyboard.k7f &= (~0x10);
-            else
-                z80io.ZXKeyboard.k7f |= (0x10);
-        break;
-    case Qt::Key_Right: //right:
-            if (state) {
-                z80io.ZXKeyboard.kef &= (~0x4);
-                z80io.ZXKeyboard.kfe &= (~0x1);
-            } else {
-                z80io.ZXKeyboard.kef |= (0x4);
-                z80io.ZXKeyboard.kfe |= (0x1);
-            }
-        break;
-    case Qt::Key_Up: //up:
-            if (state) {
-                z80io.ZXKeyboard.kef &= (~0x8);
-                z80io.ZXKeyboard.kfe &= (~0x1);
-            } else {
-                z80io.ZXKeyboard.kef |= (0x8);
-                z80io.ZXKeyboard.kfe |= (0x1);
-            }
-        break;
-    case Qt::Key_Down: //down:
-            if (state) {
-                z80io.ZXKeyboard.kef &= (~0x10);
-                z80io.ZXKeyboard.kfe &= (~0x1);
-            } else {
-                z80io.ZXKeyboard.kef |= (0x10);
-                z80io.ZXKeyboard.kfe |= (0x1);
-            }
-        break;
-    case Qt::Key_Left: //left:
-            if (state) {
-                z80io.ZXKeyboard.kf7 &= (~0x10);
-                z80io.ZXKeyboard.kfe &= (~0x1);
-            } else {
-                z80io.ZXKeyboard.kf7 |= (0x10);
-                z80io.ZXKeyboard.kfe |= (0x1);
-            }
-        break;
-    case Qt::Key_Backspace: //backspace:
-            if (state) {
-                z80io.ZXKeyboard.kef &= (~0x1);
-                z80io.ZXKeyboard.kfe &= (~0x1);
+    case Qt::Key_Space: z80io.setKey(ZX_KeyRow_Space, ZX_KeyBit_Space, state); break;
+    case Qt::Key_Shift: z80io.setKey(ZX_KeyRow_SShift, ZX_KeyBit_SShift, state); break;
+    case Qt::Key_M: z80io.setKey(ZX_KeyRow_M, ZX_KeyBit_M, state); break;
+    case Qt::Key_N: z80io.setKey(ZX_KeyRow_N, ZX_KeyBit_N, state); break;
+    case Qt::Key_B: z80io.setKey(ZX_KeyRow_B, ZX_KeyBit_B, state); break;
 
-            } else {
-                z80io.ZXKeyboard.kef |= (0x1);
-                z80io.ZXKeyboard.kfe |= (0x1);
-            }
+    case Qt::Key_Right:
+        z80io.setKey(ZX_KeyRow_8, ZX_KeyBit_8, state);
+        z80io.setKey(ZX_KeyRow_CShift, ZX_KeyBit_CShift, state);
+        break;
+    case Qt::Key_Up:
+        z80io.setKey(ZX_KeyRow_7, ZX_KeyBit_7, state);
+        z80io.setKey(ZX_KeyRow_CShift, ZX_KeyBit_CShift, state);
+        break;
+    case Qt::Key_Down:
+        z80io.setKey(ZX_KeyRow_6, ZX_KeyBit_6, state);
+        z80io.setKey(ZX_KeyRow_CShift, ZX_KeyBit_CShift, state);
+        break;
+    case Qt::Key_Left:
+        z80io.setKey(ZX_KeyRow_5, ZX_KeyBit_5, state);
+        z80io.setKey(ZX_KeyRow_CShift, ZX_KeyBit_CShift, state);
+        break;
+    case Qt::Key_Backspace:
+        z80io.setKey(ZX_KeyRow_0, ZX_KeyBit_0, state);
+        z80io.setKey(ZX_KeyRow_CShift, ZX_KeyBit_CShift, state);
         break;
     case Qt::Key_Apostrophe:
-            if (state) {
-                z80io.ZXKeyboard.kdf &= (~0x1);
-                z80io.ZXKeyboard.k7f &= (~0x2);
-            } else {
-                z80io.ZXKeyboard.kdf |= (0x1);
-                z80io.ZXKeyboard.k7f |= (0x2);
-            }
+        z80io.setKey(ZX_KeyRow_P, ZX_KeyBit_P, state);
+        z80io.setKey(ZX_KeyRow_SShift, ZX_KeyBit_SShift, state);
         break;
+
     default:
         if (state) QWidget::keyPressEvent(event);
         else QWidget::keyReleaseEvent(event);

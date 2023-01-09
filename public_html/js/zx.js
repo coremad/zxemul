@@ -47,7 +47,7 @@ fetch("js/undead-zx.wasm")
   .then((response) => response.arrayBuffer())
   .then((bytes) => WebAssembly.instantiate(bytes))
   .then((results) => {
-//    console.log(results.instance);
+    console.log(results.instance);
     zx = new TZX(results.instance, width, height);
     zx.init();
 
@@ -134,7 +134,7 @@ fetch("js/undead-zx.wasm")
             itacts.innerHTML = ("000000" + zx.itacts[0]).slice(-6);
         }
 
-    const fkempston = {kLeft:1, kRigth:2, kUp:4, kDown:8, kFire:16};
+    const fkempston = { kLeft:1, kRigth:2, kUp:4, kDown:8, kFire:16 };
     var start_button = 0;
     window.addEventListener('gamepadconnected', (event) => {
       const update = () => {
@@ -160,7 +160,6 @@ fetch("js/undead-zx.wasm")
       update();
     });
 
-//    go();
     pause();
 
     ctx.fillStyle = "red";
@@ -180,10 +179,8 @@ fetch("js/undead-zx.wasm")
             hstr = "IFF: " + zx.iff1state() + " IM: " + zx.imstate() + " IR: " + toHex(zx.irstate());
             if (zx.haltstate()) hstr += ' HALT';
             ctx.fillText(hstr, 2, 16);
-//            if (zx.tapeStarted[0]) ctx.fillText("TAPE " + zx.block[0], width - 64 - 16, height - 16);
             const timeTaken = (performance.now() - start);
             html_fps.innerHTML = timeTaken.toFixed(2);
-//            var opCounter = zx.opCounter();
             var regs = " PC: " + toHex(zx.z80[0])
                 + " AF: " + toHex(zx.z80[1])
                 + " BC: " + toHex(zx.z80[2])
@@ -194,12 +191,9 @@ fetch("js/undead-zx.wasm")
                 + " IY: " + toHex(zx.z80[7])
                 + " OP: " + toHex(zx.opcode(), 2);
             debug2.innerHTML = regs;
-//            if ((opCounter >= 0) && (str <= maxStr)) {
             if (str <= maxStr) {
-//                debug.innerHTML += "<br>" + " " + opCounter + regs;
                 debug.innerHTML += "<br>" + " " + regs;
                 str++;
-//                    showregs = 0;
             }
         }
         zx.emul_active = 0;
@@ -212,415 +206,6 @@ fetch("js/undead-zx.wasm")
             clearInterval(pause.intervalID);
             ctx.fillText("PAUSED", 2, height - 16);
         }
-    }
-
-    function checkKeys(event) {
-//        console.log(event);
-        var state = 1;
-        if (event.type == "keyup") state = 0;
-        switch(event.code) {
-        case "F3":
-                ifile.click();
-            break;
-        case "F2":
-                saveSNA();
-            break;
-        case "ShiftLeft":
-//            case "ControlLeft":
-//            case "AltLeft":
-                if (state)
-                    zx.ZXKeyboard[0] &= (~0x1);
-                else
-                    zx.ZXKeyboard[0] |= (0x1);
-            break;
-        case "KeyZ":
-                if (state)
-                    zx.ZXKeyboard[0] &= (~0x2);
-                else
-                    zx.ZXKeyboard[0] |= (0x2);
-            break;
-        case "KeyX":
-                if (state)
-                    zx.ZXKeyboard[0] &= (~0x4);
-                else
-                    zx.ZXKeyboard[0] |= (0x4);
-            break;
-        case "KeyC":
-                if (state)
-                    zx.ZXKeyboard[0] &= (~0x8);
-                else
-                    zx.ZXKeyboard[0] |= (0x8);
-            break;
-        case "KeyV":
-                if (state)
-                    zx.ZXKeyboard[0] &= (~0x10);
-                else
-                    zx.ZXKeyboard[0] |= (0x10);
-            break;
-
-        case "KeyA":
-                if (state)
-                    zx.ZXKeyboard[1] &= (~0x1);
-                else
-                    zx.ZXKeyboard[1] |= (0x1);
-            break;
-        case "KeyS":
-                if (state)
-                    zx.ZXKeyboard[1] &= (~0x2);
-                else
-                    zx.ZXKeyboard[1] |= (0x2);
-            break;
-        case "KeyD":
-                if (state)
-                    zx.ZXKeyboard[1] &= (~0x4);
-                else
-                    zx.ZXKeyboard[1] |= (0x4);
-            break;
-        case "KeyF":
-                if (state)
-                    zx.ZXKeyboard[1] &= (~0x8);
-                else
-                    zx.ZXKeyboard[1] |= (0x8);
-            break;
-        case "KeyG":
-                if (state)
-                    zx.ZXKeyboard[1] &= (~0x10);
-                else
-                    zx.ZXKeyboard[1] |= (0x10);
-            break;
-
-        case "KeyQ":
-                if (state)
-                    zx.ZXKeyboard[2] &= (~0x1);
-                else
-                    zx.ZXKeyboard[2] |= (0x1);
-            break;
-        case "KeyW":
-                if (state)
-                    zx.ZXKeyboard[2] &= (~0x2);
-                else
-                    zx.ZXKeyboard[2] |= (0x2);
-            break;
-        case "KeyE":
-                if (state)
-                    zx.ZXKeyboard[2] &= (~0x4);
-                else
-                    zx.ZXKeyboard[2] |= (0x4);
-            break;
-        case "KeyR":
-                if (state)
-                    zx.ZXKeyboard[2] &= (~0x8);
-                else
-                    zx.ZXKeyboard[2] |= (0x8);
-            break;
-        case "KeyT":
-                if (state)
-                    zx.ZXKeyboard[2] &= (~0x10);
-                else
-                    zx.ZXKeyboard[2] |= (0x10);
-            break;
-
-        case "Numpad1":
-        case "Digit1":
-                if (state)
-                    zx.ZXKeyboard[3] &= (~0x1);
-                else
-                    zx.ZXKeyboard[3] |= (0x1);
-            break;
-        case "Numpad2":
-        case "Digit2":
-                if (state)
-                    zx.ZXKeyboard[3] &= (~0x2);
-                else
-                    zx.ZXKeyboard[3] |= (0x2);
-            break;
-        case "Numpad3":
-        case "Digit3":
-                if (state)
-                    zx.ZXKeyboard[3] &= (~0x4);
-                else
-                    zx.ZXKeyboard[3] |= (0x4);
-            break;
-        case "Numpad4":
-        case "Digit4":
-                if (state)
-                    zx.ZXKeyboard[3] &= (~0x8);
-                else
-                    zx.ZXKeyboard[3] |= (0x8);
-            break;
-        case "Numpad5":
-        case "Digit5": //SDLK_5:
-                if (state)
-                    zx.ZXKeyboard[3] &= (~0x10);
-                else
-                    zx.ZXKeyboard[3] |= (0x10);
-            break;
-
-        case "Numpad0":
-        case "Digit0": //SDLK_0:
-                if (state)
-                    zx.ZXKeyboard[4] &= (~0x1);
-                else
-                    zx.ZXKeyboard[4] |= (0x1);
-            break;
-        case "Numpad9":
-        case "Digit9": //SDLK_9:
-                if (state)
-                    zx.ZXKeyboard[4] &= (~0x2);
-                else
-                    zx.ZXKeyboard[4] |= (0x2);
-            break;
-        case "Numpad8":
-        case "Digit8": //SDLK_8:
-                if (state)
-                    zx.ZXKeyboard[4] &= (~0x4);
-                else
-                    zx.ZXKeyboard[4] |= (0x4);
-            break;
-        case "Numpad7":
-        case "Digit7": //SDLK_7:
-                if (state)
-                    zx.ZXKeyboard[4] &= (~0x8);
-                else
-                    zx.ZXKeyboard[4] |= (0x8);
-            break;
-        case "Numpad6":
-        case "Digit6": //SDLK_6:
-                if (state)
-                    zx.ZXKeyboard[4] &= (~0x10);
-                else
-                    zx.ZXKeyboard[4] |= (0x10);
-            break;
-
-        case "KeyP": //SDLK_p:
-                if (state)
-                    zx.ZXKeyboard[5]  &= (~0x1);
-                else
-                    zx.ZXKeyboard[5] |= (0x1);
-            break;
-        case "KeyO": //SDLK_o:
-                if (state)
-                    zx.ZXKeyboard[5] &= (~0x2);
-                else
-                    zx.ZXKeyboard[5] |= (0x2);
-            break;
-        case "KeyI": //SDLK_i:
-                if (state)
-                    zx.ZXKeyboard[5] &= (~0x4);
-                else
-                    zx.ZXKeyboard[5] |= (0x4);
-            break;
-        case "KeyU": //SDLK_u:
-                if (state)
-                    zx.ZXKeyboard[5] &= (~0x8);
-                else
-                    zx.ZXKeyboard[5] |= (0x8);
-            break;
-        case "KeyY": //SDLK_y:
-                if (state)
-                    zx.ZXKeyboard[5] &= (~0x10);
-                else
-                    zx.ZXKeyboard[5] |= (0x10);
-            break;
-
-        case "KeyH":
-                if (state)
-                    zx.ZXKeyboard[6] &= (~0x10);
-                else
-                    zx.ZXKeyboard[6] |= (0x10);
-            break;
-        case "KeyJ":
-                if (state)
-                    zx.ZXKeyboard[6] &= (~0x8);
-                else
-                    zx.ZXKeyboard[6] |= (0x8);
-            break;
-        case "KeyK":
-                if (state)
-                    zx.ZXKeyboard[6] &= (~0x4);
-                else
-                    zx.ZXKeyboard[6] |= (0x4);
-            break;
-        case "KeyL":
-                if (state)
-                    zx.ZXKeyboard[6] &= (~0x2);
-                else
-                    zx.ZXKeyboard[6] |= (0x2);
-            break;
-        case "NumpadEnter":
-        case "Enter":
-                if (state)
-                    zx.ZXKeyboard[6] &= (~0x1);
-                else
-                    zx.ZXKeyboard[6] |= (0x1);
-            break;
-
-        case "Space": //SDLK_SPACE:
-                if (state)
-                    zx.ZXKeyboard[7] &= (~0x1);
-                else
-                    zx.ZXKeyboard[7] |= (0x1);
-            break;
-        case "ShiftRight": //SDLK_RSHIFT:
-//            case "ControlRight": //SDLK_RSHIFT:
-//            case "AltRight": //SDLK_RSHIFT:
-                if (state)
-                    zx.ZXKeyboard[7] &= (~0x2);
-                else
-                    zx.ZXKeyboard[7] |= (0x2);
-            break;
-        case "KeyM": //SDLK_m:
-                if (state)
-                    zx.ZXKeyboard[7] &= (~0x4);
-                else
-                    zx.ZXKeyboard[7] |= (0x4);
-            break;
-        case "KeyN": //SDLK_n:
-                if (state)
-                    zx.ZXKeyboard[7] &= (~0x8);
-                else
-                    zx.ZXKeyboard[7] |= (0x8);
-            break;
-        case "KeyB": //SDLK_b:
-                if (state)
-                    zx.ZXKeyboard[7] &= (~0x10);
-                else
-                    zx.ZXKeyboard[7] |= (0x10);
-            break;
-
-        case "Backspace": //backspace:
-                if (state) {
-                    zx.ZXKeyboard[4] &= (~0x1);
-                    zx.ZXKeyboard[0] &= (~0x1);
-
-                } else {
-                    zx.ZXKeyboard[0] |= (0x1);
-                    zx.ZXKeyboard[4] |= (0x1);
-                }
-            break;
-        case "ArrowRight": //right:
-                if (state) {
-                    zx.ZXKeyboard[4] &= (~0x4);
-                    zx.ZXKeyboard[0] &= (~0x1);
-                } else {
-                    zx.ZXKeyboard[4] |= (0x4);
-                    zx.ZXKeyboard[0] |= (0x1);
-                }
-            break;
-        case "ArrowUp": //up:
-                if (state) {
-                    zx.ZXKeyboard[4] &= (~0x8);
-                    zx.ZXKeyboard[0] &= (~0x1);
-                } else {
-                    zx.ZXKeyboard[4] |= (0x8);
-                    zx.ZXKeyboard[0] |= (0x1);
-                }
-            break;
-        case "ArrowDown": //down:
-                if (state) {
-                    zx.ZXKeyboard[4] &= (~0x10);
-                    zx.ZXKeyboard[0] &= (~0x1);
-                } else {
-                    zx.ZXKeyboard[4] |= (0x10);
-                    zx.ZXKeyboard[0] |= (0x1);
-                }
-            break;
-        case "ArrowLeft": //left:
-                if (state) {
-                    zx.ZXKeyboard[3] &= (~0x10);
-                    zx.ZXKeyboard[0] &= (~0x1);
-                } else {
-                    zx.ZXKeyboard[3] |= (0x10);
-                    zx.ZXKeyboard[0] |= (0x1);
-                }
-            break;
-        case "Semicolon":
-                if (state) {
-                    zx.ZXKeyboard[5] &= (~0x2);
-                    zx.ZXKeyboard[7] &= (~0x2);
-                } else {
-                    zx.ZXKeyboard[5] |= (0x2);
-                    zx.ZXKeyboard[7] |= (0x2);
-                }
-            break;
-        case "Quote":
-                if (state) {
-                    zx.ZXKeyboard[5] &= (~0x1);
-                    zx.ZXKeyboard[7] &= (~0x2);
-                } else {
-                    zx.ZXKeyboard[5] |= (0x1);
-                    zx.ZXKeyboard[7] |= (0x2);
-                }
-            break;
-        case "Equal":
-                if (state) {
-                    zx.ZXKeyboard[6] &= (~0x2);
-                    zx.ZXKeyboard[7] &= (~0x2);
-                } else {
-                    zx.ZXKeyboard[6] |= (0x2);
-                    zx.ZXKeyboard[7] |= (0x2);
-                }
-            break;
-        case "NumpadSubtract":
-        case "Minus":
-                if (state) {
-                    zx.ZXKeyboard[6] &= (~0x8);
-                    zx.ZXKeyboard[7] &= (~0x2);
-                } else {
-                    zx.ZXKeyboard[6] |= (0x8);
-                    zx.ZXKeyboard[7] |= (0x2);
-                }
-            break;
-        case "NumpadAdd":
-                if (state) {
-                    zx.ZXKeyboard[6] &= (~0x4);
-                    zx.ZXKeyboard[7] &= (~0x2);
-                } else {
-                    zx.ZXKeyboard[6] |= (0x4);
-                    zx.ZXKeyboard[7] |= (0x2);
-                }
-            break;
-        case "NumpadMultiply":
-                if (state) {
-                    zx.ZXKeyboard[7] &= (~0x10);
-                    zx.ZXKeyboard[7] &= (~0x2);
-                } else {
-                    zx.ZXKeyboard[7] |= (0x10);
-                    zx.ZXKeyboard[7] |= (0x2);
-                }
-            break;
-        case "NumpadDivide":
-        case "Slash":
-                if (state) {
-                    zx.ZXKeyboard[0] &= (~0x10);
-                    zx.ZXKeyboard[7] &= (~0x2);
-                } else {
-                    zx.ZXKeyboard[0] |= (0x10);
-                    zx.ZXKeyboard[7] |= (0x2);
-                }
-            break;
-        case "Comma":
-                if (state) {
-                    zx.ZXKeyboard[7] &= (~0x8);
-                    zx.ZXKeyboard[7] &= (~0x2);
-                } else {
-                    zx.ZXKeyboard[7] |= (0x8);
-                    zx.ZXKeyboard[7] |= (0x2);
-                }
-            break;
-        case "NumpadDecimal":
-        case "Period":
-                if (state) {
-                    zx.ZXKeyboard[7] &= (~0x4);
-                    zx.ZXKeyboard[7] &= (~0x2);
-                } else {
-                    zx.ZXKeyboard[7] |= (0x4);
-                    zx.ZXKeyboard[7] |= (0x2);
-                }
-            break;
-        };
-        event.preventDefault();
-        return false;
     }
 
     function pick(event) {
@@ -671,6 +256,14 @@ class TZX {
         this.emul_active = 0;
     }
 
+    setKey(krow, keys, state) {
+        if (krow >= 8) return;
+        if (state)
+            zx.ZXKeyboard[krow] &= (~keys)
+        else
+            zx.ZXKeyboard[krow] |= keys;
+    }
+
     loadSNA(sna) {
         this.emul_ready = 0;
         fetch(sna)
@@ -695,6 +288,135 @@ class TZX {
             this.emul_ready = 1;
         });
     }
+}
+
+function checkKeys(event) {
+//        console.log(event);
+    var state = 1;
+    if (event.type == "keyup") state = 0;
+    switch(event.code) {
+    case "ShiftLeft": zx.setKey(0, 1, state); break;
+    case "KeyZ": zx.setKey(0, 2, state); break;
+    case "KeyX": zx.setKey(0, 4, state); break;
+    case "KeyC": zx.setKey(0, 8, state); break;
+    case "KeyV": zx.setKey(0, 16, state); break;
+
+    case "KeyA": zx.setKey(1, 1, state); break;
+    case "KeyS": zx.setKey(1, 2, state); break;
+    case "KeyD": zx.setKey(1, 4, state); break;
+    case "KeyF": zx.setKey(1, 8, state); break;
+    case "KeyG": zx.setKey(1, 16, state); break;
+
+    case "KeyQ": zx.setKey(2, 1, state); break;
+    case "KeyW": zx.setKey(2, 2, state); break;
+    case "KeyE": zx.setKey(2, 4, state); break;
+    case "KeyR": zx.setKey(2, 8, state); break;
+    case "KeyT": zx.setKey(2, 16, state); break;
+
+    case "Numpad1":
+    case "Digit1": zx.setKey(3, 1, state); break;
+    case "Numpad2":
+    case "Digit2": zx.setKey(3, 2, state); break;
+    case "Numpad3":
+    case "Digit3": zx.setKey(3, 4, state); break;
+    case "Numpad4":
+    case "Digit4": zx.setKey(3, 8, state); break;
+    case "Numpad5":
+    case "Digit5": zx.setKey(3, 16, state); break;
+
+    case "Numpad0":
+    case "Digit0": zx.setKey(4, 1, state); break;
+    case "Numpad9":
+    case "Digit9": zx.setKey(4, 2, state); break;
+    case "Numpad8":
+    case "Digit8": zx.setKey(4, 4, state); break;
+    case "Numpad7":
+    case "Digit7": zx.setKey(4, 8, state); break;
+    case "Numpad6":
+    case "Digit6": zx.setKey(4, 16, state); break;
+
+    case "KeyP": zx.setKey(5, 1, state); break;
+    case "KeyO": zx.setKey(5, 2, state); break;
+    case "KeyI": zx.setKey(5, 4, state); break;
+    case "KeyU": zx.setKey(5, 8, state); break;
+    case "KeyY": zx.setKey(5, 16, state); break;
+
+    case "KeyH": zx.setKey(6, 16, state); break;
+    case "KeyJ": zx.setKey(6, 8, state); break;
+    case "KeyK": zx.setKey(6, 4, state); break;
+    case "KeyL": zx.setKey(6, 2, state); break;
+    case "NumpadEnter":
+    case "Enter": zx.setKey(6, 1, state); break;
+
+//        case "ControlRight": //SDLK_RSHIFT:
+//        case "AltRight": //SDLK_RSHIFT:
+    case "Space": zx.setKey(7, 1, state); break;
+    case "ShiftRight": zx.setKey(7, 2, state); break;
+    case "KeyM": zx.setKey(7, 4, state); break;
+    case "KeyN": zx.setKey(7, 8, state); break;
+    case "KeyB": zx.setKey(7, 16, state); break;
+
+    case "Backspace":
+        zx.setKey(4, 1, state);
+        zx.setKey(0, 1, state);
+        break;
+    case "ArrowRight":
+        zx.setKey(4, 4, state);
+        zx.setKey(0, 1, state);
+        break;
+    case "ArrowUp": //up:
+        zx.setKey(4, 8, state);
+        zx.setKey(0, 1, state);
+        break;
+    case "ArrowDown": //down:
+        zx.setKey(4, 16, state);
+        zx.setKey(0, 1, state);
+        break;
+    case "ArrowLeft": //left:
+        zx.setKey(3, 16, state);
+        zx.setKey(0, 1, state);
+        break;
+    case "Semicolon":
+        zx.setKey(5, 2, state);
+        zx.setKey(7, 2, state);
+        break;
+    case "Quote":
+        zx.setKey(5, 1, state);
+        zx.setKey(7, 2, state);
+        break;
+    case "Equal":
+        zx.setKey(6, 2, state);
+        zx.setKey(7, 2, state);
+        break;
+    case "NumpadSubtract":
+    case "Minus":
+        zx.setKey(6, 8, state);
+        zx.setKey(7, 2, state);
+        break;
+    case "NumpadAdd":
+        zx.setKey(6, 4, state);
+        zx.setKey(7, 2, state);
+        break;
+    case "NumpadMultiply":
+        zx.setKey(7, 2 | 16, state);
+        break;
+    case "NumpadDivide":
+    case "Slash":
+        zx.setKey(0, 16, state);
+        zx.setKey(7, 2, state);
+        break;
+    case "Comma":
+        zx.setKey(7, 2 | 8, state);
+        break;
+    case "NumpadDecimal":
+    case "Period":
+        zx.setKey(7, 2 | 4, state);
+        break;
+    default:
+        return true;
+    };
+    event.preventDefault();
+    return false;
 }
 
 });

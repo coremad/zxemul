@@ -1,9 +1,5 @@
 #include "z80io.h"
-//#include "tape.h"
-
-#ifdef DEBUG
-#include "stdio.h"
-#endif
+#include "tape.h"
 
 void Tz80io::reset() {
 	ZXKeyboard.kfe = ZXKeyboard.kfd = ZXKeyboard.kfb
@@ -62,10 +58,6 @@ byte Tz80io::readPort(word port) {
                 break;
             case 0xdffe:
                 keys = ZXKeyboard.kdf;
-//            #ifdef DEBUG
-//            fprintf(stderr, "wtf?! port: %04x keys: %02x\n", port, keys);
-//            fprintf(stderr, "zxkeb: %x\n", &ZXKeyboard);
-//            #endif
                 break;
             case 0xbffe:
                 keys = ZXKeyboard.kbf;

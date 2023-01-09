@@ -1,7 +1,8 @@
 CFLAGS		= \
 			-I'src/include' \
-			-Wall -O3 \
-			-ftree-vectorize
+			-Wall -O2 \
+			-ftree-vectorize \
+			-fomit-frame-pointer \
 
 WFLAGS		 = \
 			--target=wasm32 \
@@ -17,15 +18,54 @@ WFLAGS		 = \
 CXXFLAGS	= $(CFLAGS) \
 			-std=c++17
 
-web:
-	clang++ $(CXXFLAGS) $(WFLAGS) -o public_html/js/undead-zx.wasm src/zxemul.cpp src/z80.cpp src/z80io.cpp src/snapshots.cpp src/undead-web.cpp -DRCOLORS
-#	emcc $(CXXFLAGS) -o public_html/js/undead-zx.wasm src/zxemul.cpp src/z80.cpp src/z80io.cpp src/snapshots.cpp src/undead-web.cpp -Wl,--export-all --no-entry
 
-sdl:
-	clang++ $(CXXFLAGS) -o undead-sdl src/zxemul.cpp src/z80.cpp src/z80io.cpp src/snapshots.cpp src/fsnapshots.cpp src/undead-sdl.cpp -lSDL
+SDIR 		= src
+IDIR		= src/include
+ODIR 		= obj
+# SRCS		= $(wildcard $(SDIR)/*.cpp)
+SRCS		= \
+		z80io.cpp \
+		z80.cpp \
+		snapshots.cpp \
+		zxemul.cpp \
+		fsnapshots.cpp
+# 		src/tape.cpp \
+# 		src/debug.cpp \
+
+SRCS_SDL	= $(SRCS) undead-sdl.cpp
+OBJS_SDL	= $(patsubst %.cpp,$(ODIR)/%.o,$(SRCS_SDL))
+DEPS_SDL	= $(patsubst %.cpp,$(ODIR)/%.d,$(SRCS_SDL))
+
+.PHONY: clean
+
+clean:
+	rm -f $(ODIR)/*.o
+	rm -f src/*.o
+	rm -f $(ODIR)/*.d
+	rm -f src/*.d
+	rm -f undead-*
+
+sdl:	undead-sdl
+
+undead-sdl: $(OBJS_SDL)
+	c++ $(CXXFLAGS) $(CXXFLAGS) $^ -o undead-sdl -lSDL
+
+
+-include $(OBJS:$(ODIR)/.o=$(ODIR)/.d)
+
+$(ODIR)/%.o: $(SDIR)/%.cpp
+	c++ $(CXXFLAGS) -MMD -MP -c $< -o $@
+
+#	clang++ $(CXXFLAGS) -o undead-sdl src/zxemul.cpp src/z80.cpp src/z80io.cpp src/snapshots.cpp src/fsnapshots.cpp src/tape.cpp src/undead-sdl.cpp -lSDL
+# 	c++ $(CXXFLAGS) -march=native -mtune=native -o undead-sdl $(SOURCES) -lSDL
 
 qt:
 	cd src/Qt && qmake5 && make
 
+web:
+	clang++ $(CXXFLAGS) $(WFLAGS) -o public_html/js/undead-zx.wasm src/zxemul.cpp src/z80.cpp src/z80io.cpp src/snapshots.cpp src/undead-web.cpp -DRCOLORS
+#	emcc $(CXXFLAGS) -o public_html/js/undead-zx.wasm src/zxemul.cpp src/z80.cpp src/z80io.cpp src/snapshots.cpp src/undead-web.cpp -Wl,--export-all --no-entry
+
 android:
 	#coming soon
+

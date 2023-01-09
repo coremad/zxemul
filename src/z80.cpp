@@ -1,5 +1,8 @@
-#include <stdint.h>
 #include "z80.h"
+
+#ifdef DEBUG
+# include "debug.h"
+#endif
 
 void Tz80::init(Tz80io * io) {
     z80io = io;
@@ -46,7 +49,8 @@ inline void Tz80::writePort(word addr, byte val) {
 }
 
 inline word Tz80::readWord(word addr) {
-	return (readByte(addr) | (readByte(addr + 1) << 8));
+
+    return ((readByte(addr) | (readByte(addr + 1) << 8)));
 }
 
 inline void Tz80::writeWord(word addr, word imm) {
@@ -58,24 +62,23 @@ inline byte Tz80::readNextByte() {
 }
 
 inline word Tz80::readNextWord() {
-	word temp = readWord(rPC); rPC += 2;
-	return temp ;
+    word temp = readWord(rPC); rPC += 2;
+    return temp ;
 }
 
 inline byte Tz80::getrr(byte rr) {
     if(rr == rrA) return rA;
-    if((rr < rrM && !xdprefix) || (rr < rrL)) return r8[rr ^ 1];
-    if(rr < rrM) return r8[(indexreg << 1) + ((rr ^ 1) & 1)];
+    if((rr < rrM && !xdprefix) || (rr < rrL)) return r8[rr8(rr)];
+    if(rr < rrM) return r8[(indexreg << 1) + ((rr8(rr)) & 1)];
     if(!xdprefix) return readByte(r16[rHL]);
     if(ir == 0) imm = readNextByte();
-    ir = 1;
-    addTicks(5);
+    ir = 1; addTicks(5);
     return readByte(r16[indexreg] + imm);
 }
 
 inline byte Tz80::getrrL(byte rr) {
     if(rr == rrA) return rA;
-    return r8[rr ^ 1];
+    return r8[rr8(rr)];
 }
 
 inline void Tz80::setrr(byte rr, byte val) {
@@ -84,11 +87,11 @@ inline void Tz80::setrr(byte rr, byte val) {
 		return;
     }
 	if ((rr < rrM && !xdprefix) || (rr < rrL)) {
-		r8[rr ^ 1] = val;
+        r8[rr8(rr)] = val;
 		return;
 	}
     if(rr < rrM) {
-        r8[(indexreg << 1) + ((rr ^ 1) & 1) ] = val;
+        r8[(indexreg << 1) + ((rr8(rr)) & 1) ] = val;
         return;
     }
     if(!xdprefix) {
@@ -97,20 +100,19 @@ inline void Tz80::setrr(byte rr, byte val) {
     }
     if (!ir) imm = readNextByte();
     writeByte(r16[indexreg] + imm, val);
-    addTicks(5);
-    ir = 1;
+    ir = 1; addTicks(5);
     return;
 }
 
 inline void Tz80::setrrL(byte rr, byte val) {
     if (rr == rrA) rA = val;
-    else r8[(rr ^ 1)] = val;
+    else r8[(rr8(rr))] = val;
 }
 
 inline byte Tz80::getrrcb(byte rr) {
     if(!xdprefix) {
         if(rr == rrA) return rA;
-        if(rr < rrM) return r8[rr ^ 1];
+        if(rr < rrM) return r8[rr8(rr)];
         return readByte(r16[rHL]);
     }
     addTicks(6);
@@ -122,7 +124,7 @@ inline void Tz80::setrrcb(byte rr, byte val) {
         rA = val;
     }
     if (rr < rrM) {
-        r8[rr ^ 1] = val;
+        r8[rr8(rr)] = val;
     }
     if(!xdprefix && rr == rrM) writeByte(r16[rHL], val);
     if(xdprefix) writeByte(r16[indexreg] + imm, val);
@@ -177,7 +179,7 @@ inline bool	Tz80::checkCC(byte cc) {
 }
 
 inline void Tz80::gotoaddr(word addr) {
-	rPC = addr;
+    rPC = addr;
 }
 
 inline void Tz80::opINC8(byte r) {
@@ -251,7 +253,7 @@ inline void Tz80::gr16(byte y) {
 	int p = (y>>1) & 3;
 	switch(y & 1) {
 	case 0://LD R16,NN
-		set16r(p, readNextWord());
+        set16r(p, readNextWord());
 		break;
 	case 1://ADD HL, R16
 		int reghl = get16r(rHL);
@@ -508,7 +510,7 @@ inline void Tz80::setrp2(byte rp2, word nn) {
 
 inline void Tz80::opPUSH(word nn) {
 	r16[rSP] -= 2;
-	writeWord(r16[rSP], nn);
+    writeWord(r16[rSP], nn);
 	addTicks(1);
 }
 
@@ -964,7 +966,7 @@ int Tz80::emul(dword tickNum) {
     if (!tickNum) return 0;
     z80io->iTicks = tickNum;
 	while((!haltstate && (z80io->iTicksCounter < z80io->iTicks)) || xdprefix || edprefix) {
-		opcode = readNextByte();
+        opcode = readNextByte();
 		incR(1);
         addTicks(1);
         if (edprefix) {

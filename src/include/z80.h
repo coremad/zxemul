@@ -1,9 +1,21 @@
 #ifndef _Z80_H_
 #define _Z80_H_
 
+//#ifdef __clang__
+////
+//#elif __GNUC__
+//#include <endian.h>
+//#endif
+
+#include "zdefs.h"
 #include "z80io.h"
 
-enum regs8 { rC, rB, rE, rD, rL, rH, rSPL, SPH, rXL, rXH, rYL, rYH };
+#ifndef LITTLEENDIAN
+enum regs8 { rB, rC, rD, rE, rH, rL, rSPH, rSPL, rXH, rXL, rYH, rYL };
+#else
+enum regs8 { rC, rB, rE, rD, rL, rH, rSPL, rSPH, rXL, rXH, rYL, rYH };
+#endif
+
 enum regs16 { rBC, rDE, rHL, rSP, rIX, rIY };
 
 enum z80cc { cNZ, cZ, cNC, cC, cPO, cPE, cP, cM };
@@ -24,8 +36,11 @@ public:
 	union {
 		word rAF;
 		struct {
-            byte rF;
-            byte rA;
+#ifndef LITTLEENDIAN
+            byte rA, rF;
+#else
+            byte rF, rA;
+#endif
 		};
 	};
 	union {
@@ -34,11 +49,11 @@ public:
 	};
 	union {
 		word rAF1;
-		struct{
+        struct{
             byte rF1;
             byte rA1;
-		};
-	};
+        };
+    };
 	union {
 		byte r8_1[8];
 		word r16_1[4];
@@ -46,9 +61,12 @@ public:
 	union {
 		word rIR;
 		struct {
-            byte rR;
-            byte rI;
-		};
+#ifndef LITTLEENDIAN
+            byte rI, rR;
+#else
+            byte rR, rI;
+#endif
+        };
 	};
 	int iff1, iff2;
 	int IM;
@@ -67,10 +85,10 @@ public:
 	void reset();
 	int emul(dword tickNum);
 	void doInterrupt();
+    Tz80io * z80io;
 
 private:
-    Tz80io * z80io;
-	void setflag(byte ff);
+    void setflag(byte ff);
 	void resflag(byte ff);
 
 	byte readByte(word addr);
@@ -148,8 +166,8 @@ private:
 	void errorpref();
 };
 
-extern byte zxmem[];
-extern Tz80 z80;
+//extern byte zxmem[];
+//extern Tz80 z80;
 
 #endif //_Z80_H_
 
