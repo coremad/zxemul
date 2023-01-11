@@ -16,11 +16,20 @@ uint32_t vbuf[640*480*4];
         return z80io.pkempston();
     }
 
-    TZXKeyboard * pZXKeyboard() {
-        return z80io.pZXKeyboard();
+//    TZXKeyboard * pZXKeyboard() {
+//        return z80io.pZXKeyboard();
+//    }
+
+    void setKey(byte krow, byte keys, bool state) {
+        z80io.setKey(krow, keys, state);
     }
 
     int emulStarted = 0;
+
+    void reset() {
+        z80io.reset();
+        z80.reset();
+    }
 
     void emul() {
         if (!emulStarted) {
@@ -31,10 +40,6 @@ uint32_t vbuf[640*480*4];
         }
     }
 
-//    dword opCounter() {
-//        return z80io.opCounter;
-//    }
-//
     int haltstate() {
         return z80.haltstate;
     }
@@ -53,6 +58,18 @@ uint32_t vbuf[640*480*4];
 
     byte opcode() {
         return z80.opcode;
+    }
+
+    char bDate[12] = __DATE__;
+    char bTime[9] = __TIME__;
+
+
+    const char* getBTime() {
+      return bTime;
+    }
+
+    const char* getBDate() {
+      return bDate;
     }
 
 //    void startTape() {

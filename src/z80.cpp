@@ -4,10 +4,6 @@
 # include "debug.h"
 #endif
 
-void Tz80::init(Tz80io * io) {
-    z80io = io;
-}
-
 void Tz80::reset() {
 	z80io->tickCounter = rPC = rAF = rAF1 = rIR = xdprefix = opcode = iff1 = iff2 = haltstate = IM = 0;
 	for (int i = 0; i < 6; i++) r16[i] = 0;

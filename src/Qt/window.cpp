@@ -3,7 +3,7 @@
 
 #include "zxemul.h"
 #include "fsnapshots.h"
-#include "tape.h"
+#include "zxtape.h"
 
 #include <QGridLayout>
 #include <QLabel>
@@ -54,13 +54,11 @@ void Window::keyPressEvent(QKeyEvent *e) {
     case Qt::Key_F8:
         loadSNA48k("roms/pacmania.sna");
         break;
-    case Qt::Key_F9:
-        loadSNA48k("roms/tape.sna");
-        break;
+//#ifdef DEBUG
 //    case Qt::Key_F1:
-//        initTape(z80io.tickCounter);
+//        zxtape.initTape();
 //        break;
-
+//#endif
     default:
         checkKeys(e, 1);
         break;

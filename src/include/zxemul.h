@@ -1,6 +1,7 @@
 #ifndef _ZXEMUL_H_
 #define _ZXEMUL_H_
 #include "z80.h"
+#include "zxtape.h"
 
 class Tzx48 {
     dword * pvbuf;
@@ -16,5 +17,6 @@ public:
 extern Tzx48 zx48;
 extern Tz80 z80;
 extern Tz80io z80io;
+extern TZXTape zxtape;
 
 #endif //_ZXEMUL_H_

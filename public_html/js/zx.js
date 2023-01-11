@@ -18,7 +18,8 @@ const ifile = document.getElementById('file-input');
 const islider = document.getElementById("iRange");
 const itacts = document.getElementById("itacts");
 const czx = document.getElementById("zx");
-const mbut = document.getElementById("dropbtn")
+const mbut = document.getElementById("dropbtn");
+const build = document.getElementById("build");
 //const tape_button = document.getElementById("tape_button")
 
 
@@ -42,14 +43,18 @@ var str = 0;
 
 ctx.canvas.width  = width;
 ctx.canvas.height  = height;
-
-fetch("js/undead-zx.wasm")
+const importObject = { imports: { imported_func: arg => console.log(arg) } };
+fetch("js/undead-zx.wasm?seed=" + Math.random())
   .then((response) => response.arrayBuffer())
   .then((bytes) => WebAssembly.instantiate(bytes))
   .then((results) => {
     console.log(results.instance);
     zx = new TZX(results.instance, width, height);
-    zx.init();
+    build.innerHTML = "build: " +
+            String.fromCharCode.apply(null, zx.bDate) +
+            " " +
+            String.fromCharCode.apply(null, zx.bTime);
+//    zx.init();
 
     pbutton.onclick = pause;
     cbutton.onclick = reset;
@@ -214,7 +219,7 @@ fetch("js/undead-zx.wasm")
     function reset() {
         pause();
         zx.loadROM();
-        zx.init();
+        zx.reset();
         str = 0;
         debug.innerHTML = '';
         pause();
@@ -236,18 +241,22 @@ class TZX {
         this.data = this.myImageData.data;
         this.init = ws.exports.init;
         this.emul = ws.exports.emul;
+        this.reset = ws.exports.reset;
         this.haltstate = ws.exports.haltstate;
         this.iff1state = ws.exports.iff1state;
         this.iff2state = ws.exports.iff2state;
         this.imstate = ws.exports.imstate;
         this.irstate = ws.exports.irstate;
+        this.setKey = ws.exports.setKey;
         this.opcode = ws.exports.opcode;
         this.initSNA48k = ws.exports.initSNA48k;
         this.dumpSNA48k = ws.exports.dumpSNA48k;
+        this.bTime = new Uint8Array(this.buffer, ws.exports.getBTime(), 9);
+        this.bDate = new Uint8Array(this.buffer, ws.exports.getBDate(), 12);
         this.zxmem = new Uint8Array(this.buffer, ws.exports.pzxmem(), 65536);
         this.z80 = new Uint16Array(this.buffer, ws.exports.z80, 64);
         this.sna = new Uint8Array(this.buffer, ws.exports.SNA, 27);
-        this.ZXKeyboard = new Uint8Array(this.buffer, ws.exports.pZXKeyboard(), 8);;
+//        this.ZXKeyboard = new Uint8Array(this.buffer, ws.exports.pZXKeyboard(), 8);;
         this.kempston = new Uint32Array(this.buffer, ws.exports.pkempston(), 1);
         this.itacts = new Uint32Array(this.buffer, ws.exports.itacts, 1);
         this.loadROM();
@@ -256,13 +265,13 @@ class TZX {
         this.emul_active = 0;
     }
 
-    setKey(krow, keys, state) {
-        if (krow >= 8) return;
-        if (state)
-            zx.ZXKeyboard[krow] &= (~keys)
-        else
-            zx.ZXKeyboard[krow] |= keys;
-    }
+//    setKey(krow, keys, state) {
+//        if (krow >= 8) return;
+//        if (state)
+//            zx.ZXKeyboard[krow] &= (~keys)
+//        else
+//            zx.ZXKeyboard[krow] |= keys;
+//    }
 
     loadSNA(sna) {
         this.emul_ready = 0;

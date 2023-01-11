@@ -1,12 +1,6 @@
 #ifndef _Z80_H_
 #define _Z80_H_
 
-//#ifdef __clang__
-////
-//#elif __GNUC__
-//#include <endian.h>
-//#endif
-
 #include "zdefs.h"
 #include "z80io.h"
 
@@ -80,9 +74,13 @@ public:
 	int8_t imm;
 	int indexreg;
 	int ir;
-
-    void init(Tz80io * io);
-	void reset();
+    Tz80(Tz80io * io) {
+        z80io = io;
+    }
+    void init(Tz80io * io) {
+        z80io = io;
+    }
+    void reset();
 	int emul(dword tickNum);
 	void doInterrupt();
     Tz80io * z80io;
@@ -165,9 +163,6 @@ private:
 	void grX3(byte y, byte z);
 	void errorpref();
 };
-
-//extern byte zxmem[];
-//extern Tz80 z80;
 
 #endif //_Z80_H_
 

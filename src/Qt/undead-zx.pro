@@ -1,8 +1,7 @@
 QT          += widgets
 
-
 QMAKE_CFLAGS += $$(CFLAGS) -ftree-vectorize -fomit-frame-pointer -march=native -mtune=native
-QMAKE_CXXFLAGS += $$(CXXFLAGS) -ftree-vectorize -fomit-frame-pointer -march=native -mtune=native
+QMAKE_CXXFLAGS += $$(CXXFLAGS) -ftree-vectorize -fomit-frame-pointer -march=native -mtune=native -g
 
 INCLUDEPATH += ../include
 
@@ -11,12 +10,19 @@ INCLUDEPATH += ../include
 HEADERS     = widget.h \
               window.h \
               ../include/zdefs.h \
-              ../include/tape.h \
-              ../include/zxemul.h \
               ../include/z80io.h \
               ../include/z80.h \
+              ../include/zxemul.h \
               ../include/snapshots.h \
-#              ../include/debug.h
+              ../include/debug.h \
+              ../include/zxports.h \
+              ../include/zxkempston.h \
+              ../include/zxkeyboard.h \
+              ../include/wmem.h \
+              ../include/zxborder.h \
+              ../include/zxkeyboardp.h \
+              ../include/zxtape.h \
+#              ../include/tape.h \
 
 SOURCES     = main.cpp \
               widget.cpp \
@@ -26,7 +32,10 @@ SOURCES     = main.cpp \
               ../zxemul.cpp \
               ../snapshots.cpp \
               ../fsnapshots.cpp \
+              ../zxports.cpp \
 #              ../tape.cpp \
 #              ../debug.cpp \
+#              ../undead-sdl.cpp \
+#              ../undead-web.cpp \
 
 TARGET = ../../undead-qt

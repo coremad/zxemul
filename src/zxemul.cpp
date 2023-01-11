@@ -1,18 +1,38 @@
+#ifdef __wasm__
+//#include "wmem.h"
+#endif
 #include "zxemul.h"
 #include "z80.h"
+#include "zxports.h"
+#include "zxkempston.h"
+#include "zxborder.h"
+#include "zxkeyboardp.h"
+#include "zxtape.h"
 
+byte tapebuf[max_tape_size];
 Tz80io z80io;
-Tz80 z80;
-Tzx48 zx48;
+Tz80 z80(&z80io);
+//TZXmultiport port_fe(&z80io, 0xfe);
+//TZXBorder zxborder(&port_fe);
+//TZXKeyboardp zxkeyboard(&port_fe);
+//TZXTape zxtape(&port_fe, tapebuf);
+//TZXKempston zxkempston(&z80io);
 
+Tzx48 zx48;
 dword itacts = 69888;
 
 void Tzx48::init(dword * vbuf) {
     pvbuf = vbuf;
-    z80io.reset();
+    z80io.init();
     z80.init(&z80io);
-	z80.reset();
-	flashcounter = 15;
+    static    TZXKempston zxkempston(&z80io);
+    static    TZXmultiport port_fe(&z80io, 0xfe);
+    static    TZXBorder zxborder(&port_fe);
+    static    TZXKeyboardp zxkeyboard(&port_fe);
+    static    TZXTape zxtape(&port_fe, tapebuf);
+    z80io.reset();
+    z80.reset();
+    flashcounter = 15;
 }
 
 void Tzx48::emul() {

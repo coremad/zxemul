@@ -3,6 +3,7 @@
 #include <SDL/SDL.h>
 #include "zxemul.h"
 #include "fsnapshots.h"
+#include "zxkempston.h"
 
 #define interval 20
 
@@ -85,6 +86,12 @@ void checkEvents(){
                 case SDLK_F6:
                     loadSNA48k("roms/deathchase.sna");
                     break;
+                case SDLK_F7:
+                    loadSNA48k("roms/dizzy3.sna");
+                    break;
+                case SDLK_F8:
+                    loadSNA48k("roms/pacmania.sna");
+                    break;
                 default:
 				    checkKeys(event.key.keysym.sym, 1);
                 }
@@ -142,7 +149,8 @@ Uint32 callback (Uint32 minterval, void* param) {
     if(!emul_active) {
         emul_active = 1;
 		zx48.emul();
-        zx48.ShowZXscreenNormal();
+//        zx48.ShowZXscreenNormal();
+        zx48.ShowZXscreen();
         SDL_UpdateRect(screen, 0, 0, 0, 0);
         emul_active = 0;
     }
@@ -157,7 +165,8 @@ int main() {
     SDL_JoystickEventState(SDL_ENABLE);
     joystick = SDL_JoystickOpen(0);
 	atexit(SDL_Quit);
-    screen = SDL_SetVideoMode(320 , 240 , 32 , 0);
+//    screen = SDL_SetVideoMode(320 , 240 , 32 , 0);
+    screen = SDL_SetVideoMode(640 , 480 , 32 , 0);
    	if(screen == NULL) {
    		fprintf(stderr, "Unable to set video mode: %s\n", SDL_GetError());
 		exit(1);

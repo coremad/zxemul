@@ -74,7 +74,7 @@ void Widget::animate() {
     update();
 }
 
-void Widget::paintEvent(QPaintEvent *event) {
+void Widget::paintEvent(QPaintEvent *) {
     QPainter painter;
     painter.begin(this);
     painter.setRenderHint(QPainter::Antialiasing);
