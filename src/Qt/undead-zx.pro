@@ -1,13 +1,14 @@
-QT          += widgets
+QT          += widgets multimedia
 
 QMAKE_CFLAGS += $$(CFLAGS) -ftree-vectorize -fomit-frame-pointer -march=native -mtune=native
 QMAKE_CXXFLAGS += $$(CXXFLAGS) -ftree-vectorize -fomit-frame-pointer -march=native -mtune=native -g
 
 INCLUDEPATH += ../include
 
-#DEFINES += "DEBUG"
+DEFINES += DEBUG
 
 HEADERS     = widget.h \
+    bsound.h \
               window.h \
               ../include/zdefs.h \
               ../include/z80io.h \
@@ -22,7 +23,7 @@ HEADERS     = widget.h \
               ../include/zxborder.h \
               ../include/zxkeyboardp.h \
               ../include/zxtape.h \
-#              ../include/tape.h \
+#              ../include/zxbeeper.h \
 
 SOURCES     = main.cpp \
               widget.cpp \
@@ -33,9 +34,7 @@ SOURCES     = main.cpp \
               ../snapshots.cpp \
               ../fsnapshots.cpp \
               ../zxports.cpp \
-#              ../tape.cpp \
+#              bsound.cpp \
 #              ../debug.cpp \
-#              ../undead-sdl.cpp \
-#              ../undead-web.cpp \
 
 TARGET = ../../undead-qt

@@ -48,12 +48,13 @@
 **
 ****************************************************************************/
 
+#include <QPainter>
+#include <QTimer>
+
 #include "widget.h"
 
 #include "zxemul.h"
 
-#include <QPainter>
-#include <QTimer>
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent) {
@@ -70,7 +71,6 @@ void Widget::animate() {
         zx48.ShowZXscreen();
         emul_active = 0;
     } else fprintf(stderr, "skip frame");
-
     update();
 }
 

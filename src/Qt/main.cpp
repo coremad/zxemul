@@ -48,10 +48,18 @@
 **
 ****************************************************************************/
 
+#include <iostream>
+
 #include "window.h"
 
 #include <QApplication>
 #include <QSurfaceFormat>
+#include <QMultimedia>
+#include <QAudioDeviceInfo>
+#include <QAudio>
+#include <QAudioOutput>
+#include <QBuffer>
+#include <QThread>
 
 int main(int argc, char *argv[])
 {
@@ -65,3 +73,4 @@ int main(int argc, char *argv[])
     window.show();
     return app.exec();
 }
+

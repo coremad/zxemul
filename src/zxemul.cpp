@@ -8,6 +8,12 @@
 #include "zxborder.h"
 #include "zxkeyboardp.h"
 #include "zxtape.h"
+//#include "zxbeeper.h"
+
+//byte babuffer1[abufSize];
+//byte babuffer2[abufSize];
+//byte tabuffer1[abufSize];
+//byte tabuffer2[abufSize];
 
 byte tapebuf[max_tape_size];
 Tz80io z80io;
@@ -17,6 +23,13 @@ Tz80 z80(&z80io);
 //TZXKeyboardp zxkeyboard(&port_fe);
 //TZXTape zxtape(&port_fe, tapebuf);
 //TZXKempston zxkempston(&z80io);
+
+TZXTape * zxtape;
+
+//TZXabuffer * baBuf;
+//TZXabuffer * taBuf;
+
+//TZXBeeper * zxbeeper;
 
 Tzx48 zx48;
 dword itacts = 69888;
@@ -29,7 +42,18 @@ void Tzx48::init(dword * vbuf) {
     static    TZXmultiport port_fe(&z80io, 0xfe);
     static    TZXBorder zxborder(&port_fe);
     static    TZXKeyboardp zxkeyboard(&port_fe);
-    static    TZXTape zxtape(&port_fe, tapebuf);
+    static    TZXTape lzxtape(&port_fe, tapebuf);
+    zxtape = &lzxtape;
+
+//    static    TZXabuffer lbaBuf{{babuffer1, babuffer2}, 0, 0};
+//    static    TZXabuffer ltaBuf{{tabuffer1, tabuffer2}, 0, 0};
+//    static TZXBeeper lzxbeeper(&port_fe, &lbaBuf, &ltaBuf);
+
+//    baBuf = &lbaBuf;
+//    taBuf = &ltaBuf;
+
+//    zxbeeper = &lzxbeeper;
+
     z80io.reset();
     z80.reset();
     flashcounter = 15;

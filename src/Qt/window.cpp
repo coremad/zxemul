@@ -3,7 +3,9 @@
 
 #include "zxemul.h"
 #include "fsnapshots.h"
-#include "zxtape.h"
+//#include "zxtape.h"
+//#include "bsound.h"
+
 
 #include <QGridLayout>
 #include <QLabel>
@@ -23,6 +25,8 @@ Window::Window() {
 
     zx48.init((std::uint32_t *)w->qi->bits());
     if (!loadROM48k("roms/48.rom")) close();
+//    bsinit();
+//    bsplay();
 
     this->layout()->setSizeConstraint(QLayout::SetFixedSize);
 

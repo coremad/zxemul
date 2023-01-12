@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <stdint.h>
+#ifdef SDL2
+#include <SDL2/SDL.h>
+#else
 #include <SDL/SDL.h>
+#endif
+
 #include "zxemul.h"
 #include "fsnapshots.h"
 #include "zxkempston.h"
@@ -9,6 +14,14 @@
 
 SDL_TimerID timerID;
 SDL_Surface * screen;
+
+#ifdef SDL2
+SDL_Window * sdlWindow;
+SDL_Renderer * sdlRenderer;
+SDL_Texture * sdlTexture;
+Uint32 * pixels;
+#endif
+
 SDL_Event event;
 SDL_Joystick *joystick;
 
@@ -63,6 +76,31 @@ void	checkKeys(int event, int state) {
     case SDLK_n: z80io.setKey(ZX_KeyRow_N, ZX_KeyBit_N, state); break;
     case SDLK_b: z80io.setKey(ZX_KeyRow_B, ZX_KeyBit_B, state); break;
 
+    case SDLK_BACKSPACE:
+        z80io.setKey(ZX_KeyRow_0, ZX_KeyBit_0, state);
+        z80io.setKey(ZX_KeyRow_CShift, ZX_KeyBit_CShift, state);
+        break;
+    case SDLK_QUOTE:
+    case SDLK_QUOTEDBL:
+        z80io.setKey(ZX_KeyRow_P, ZX_KeyBit_P, state);
+        z80io.setKey(ZX_KeyRow_SShift, ZX_KeyBit_SShift, state);
+        break;
+    case SDLK_RIGHT:
+        z80io.setKey(ZX_KeyRow_8, ZX_KeyBit_8, state);
+        z80io.setKey(ZX_KeyRow_CShift, ZX_KeyBit_CShift, state);
+        break;
+    case SDLK_UP:
+        z80io.setKey(ZX_KeyRow_7, ZX_KeyBit_7, state);
+        z80io.setKey(ZX_KeyRow_CShift, ZX_KeyBit_CShift, state);
+        break;
+    case SDLK_DOWN:
+        z80io.setKey(ZX_KeyRow_6, ZX_KeyBit_6, state);
+        z80io.setKey(ZX_KeyRow_CShift, ZX_KeyBit_CShift, state);
+        break;
+    case SDLK_LEFT:
+        z80io.setKey(ZX_KeyRow_5, ZX_KeyBit_5, state);
+        z80io.setKey(ZX_KeyRow_CShift, ZX_KeyBit_CShift, state);
+        break;
     }
 }
 
@@ -151,7 +189,14 @@ Uint32 callback (Uint32 minterval, void* param) {
 		zx48.emul();
 //        zx48.ShowZXscreenNormal();
         zx48.ShowZXscreen();
+#ifdef SDL2
+    SDL_UpdateTexture(sdlTexture, NULL, pixels, 640 * sizeof (Uint32));
+//    SDL_RenderClear(sdlRenderer);
+    SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
+    SDL_RenderPresent(sdlRenderer);
+#else
         SDL_UpdateRect(screen, 0, 0, 0, 0);
+#endif
         emul_active = 0;
     }
     return minterval;
@@ -165,17 +210,36 @@ int main() {
     SDL_JoystickEventState(SDL_ENABLE);
     joystick = SDL_JoystickOpen(0);
 	atexit(SDL_Quit);
+#ifdef SDL2
+//    sdlWindow = SDL_CreateWindow("Undead ZX",
+//                              SDL_WINDOWPOS_UNDEFINED,
+//                              SDL_WINDOWPOS_UNDEFINED,
+//                              640, 480,
+//                              0);
+    SDL_CreateWindowAndRenderer(640, 480, SDL_WINDOW_OPENGL, &sdlWindow, &sdlRenderer);
+    pixels = (Uint32 *)malloc(640*480*4);
+    sdlTexture = SDL_CreateTexture(sdlRenderer,
+                                   SDL_PIXELFORMAT_ARGB8888,
+                                   SDL_TEXTUREACCESS_STREAMING,
+                                   640, 480);
+    zx48.init(pixels);
+#else
 //    screen = SDL_SetVideoMode(320 , 240 , 32 , 0);
+    SDL_WM_SetCaption("Undead ZX", "undead-zx");
     screen = SDL_SetVideoMode(640 , 480 , 32 , 0);
    	if(screen == NULL) {
    		fprintf(stderr, "Unable to set video mode: %s\n", SDL_GetError());
 		exit(1);
 	}
-
-	zx48.init((Uint32 *)screen->pixels);
+    zx48.init((Uint32 *)screen->pixels);
+#endif
 	loadROM48k("roms/48.rom");
 
+#ifdef SDL2
+    timerID = SDL_AddTimer(interval, (SDL_TimerCallback)callback, (void*)"wtf");
+#else
     timerID = SDL_AddTimer(interval, (SDL_NewTimerCallback)callback, (void*)"wtf");
+#endif
     if(!timerID) fprintf(stderr, "timerID: %s\n", SDL_GetError());
 
 //	Uint32 i = 50*60*60*24*366;

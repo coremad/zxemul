@@ -2,7 +2,7 @@
 #define _ZXEMUL_H_
 #include "z80.h"
 #include "zxtape.h"
-
+#include "zxbeeper.h"
 class Tzx48 {
     dword * pvbuf;
     void setPixel( int line, int x, int color);
@@ -17,6 +17,9 @@ public:
 extern Tzx48 zx48;
 extern Tz80 z80;
 extern Tz80io z80io;
-extern TZXTape zxtape;
+extern TZXTape * zxtape;
+extern TZXabuffer * baBuf;
+extern TZXabuffer * taBuf;
+
 
 #endif //_ZXEMUL_H_
