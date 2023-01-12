@@ -5,7 +5,7 @@ QMAKE_CXXFLAGS += $$(CXXFLAGS) -ftree-vectorize -fomit-frame-pointer -march=nati
 
 INCLUDEPATH += ../include
 
-DEFINES += DEBUG
+#DEFINES += DEBUG
 
 HEADERS     = widget.h \
     bsound.h \

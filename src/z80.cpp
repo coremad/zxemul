@@ -1,8 +1,8 @@
 #include "z80.h"
 
-#ifdef DEBUG
-# include "debug.h"
-#endif
+//#ifdef DEBUG
+//# include "debug.h"
+//#endif
 
 void Tz80::reset() {
 	z80io->tickCounter = rPC = rAF = rAF1 = rIR = xdprefix = opcode = iff1 = iff2 = haltstate = IM = 0;
