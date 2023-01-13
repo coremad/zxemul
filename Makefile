@@ -34,9 +34,9 @@ SRCS		= \
 # 		$(SDIR)/fsnapshots.cpp
 # 		$(SDIR)/debug.cpp
 
-SRCS_WEB	= $(SRCS) $(SDIR)/undead-web.cpp
+SRCS_WEB	= $(SRCS) $(SDIR)/WEB/undead-web.cpp
 
-SRCS_SDL	= $(SDIR)/fsnapshots.cpp $(SRCS) $(SDIR)/undead-sdl.cpp
+SRCS_SDL	= $(SDIR)/fsnapshots.cpp $(SRCS) $(SDIR)/SDL/undead-sdl.cpp
 OBJS_SDL	= $(patsubst %.cpp,$(ODIR)/%.o,$(SRCS_SDL))
 DEPS_SDL	= $(patsubst %.cpp,$(ODIR)/%.d,$(SRCS_SDL))
 
@@ -57,6 +57,8 @@ qt:
 
 web:
 	clang++ $(CXXFLAGS) $(WFLAGS) -o public_html/js/undead-zx.wasm -I$(IDIR) $(SRCS_WEB)
+	npx -p uglify-js uglifyjs -o public_html/js/undead-zx.min.js $(SDIR)/WEB/undead-zx.js
+
 # 	emcc    $(CXXFLAGS)  -Wl,--export-all --no-entry -o public_html/js/undead-zx.wasm -I$(IDIR) $(SRCS_WEB)
 
 android:

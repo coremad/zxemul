@@ -49,6 +49,13 @@ public:
             ZXKeyboard.krows[krow] |= keys;
     }
 
+    inline void setKempston(byte but, bool state) {
+        if (state)
+            kempston |= but;
+        else
+            kempston &= (~but);
+    }
+
     byte * pzxmem() {
         return zxmem;
     }
