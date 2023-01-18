@@ -42,6 +42,7 @@ public:
     //                keys = ((!(iTicksCounter & 64)) & 0xff);
     //                break;
         default:
+            keys = 191;
             keys = ZXKeyboard->pfe;
         }
     //            keys |= getData(z80io->tickCounter);

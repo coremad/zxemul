@@ -20,6 +20,10 @@ extern Tz80io z80io;
 extern TZXTape * zxtape;
 extern TZXabuffer * baBuf;
 extern TZXabuffer * taBuf;
+extern byte babuffer1[];
+extern byte babuffer2[];
+extern byte tabuffer1[];
+extern byte tabuffer2[];
 
 
 #endif //_ZXEMUL_H_

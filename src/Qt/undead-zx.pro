@@ -5,11 +5,12 @@ QMAKE_CXXFLAGS += $$(CXXFLAGS) -ftree-vectorize -fomit-frame-pointer -march=nati
 
 INCLUDEPATH += ../include
 
-#DEFINES += DEBUG
+#DEFINES += DEBUG SDL2
 
 HEADERS     = widget.h \
               window.h \
               jevents.h \
+              bsound.h \
               ../include/zdefs.h \
               ../include/z80io.h \
               ../include/z80.h \
@@ -22,8 +23,8 @@ HEADERS     = widget.h \
               ../include/wmem.h \
               ../include/zxborder.h \
               ../include/zxkeyboardp.h \
+              ../include/zxbeeper.h \
 #              ../include/zxtape.h \
-#              ../include/zxbeeper.h \
 
 SOURCES     = main.cpp \
               widget.cpp \
@@ -35,7 +36,7 @@ SOURCES     = main.cpp \
               ../snapshots.cpp \
               ../fsnapshots.cpp \
               ../zxports.cpp \
-#              bsound.cpp \
+              bsound.cpp \
 #              ../debug.cpp \
 
 TARGET = ../../undead-qt

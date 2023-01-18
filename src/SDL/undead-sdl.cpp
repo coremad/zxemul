@@ -2,6 +2,7 @@
 #include <stdint.h>
 #ifdef SDL2
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
 #else
 #include <SDL/SDL.h>
 #endif
@@ -9,6 +10,7 @@
 #include "zxemul.h"
 #include "fsnapshots.h"
 #include "zxkempston.h"
+#include "zxbeeper.h"
 
 #define interval 20
 
@@ -128,7 +130,16 @@ void checkEvents(){
                     loadSNA48k("roms/dizzy3.sna");
                     break;
                 case SDLK_F8:
+                    loadSNA48k("roms/saboteur.sna");
+                    break;
+                case SDLK_F9:
                     loadSNA48k("roms/pacmania.sna");
+                    break;
+                case SDLK_F10:
+                    loadSNA48k("roms/darkf.sna");
+                    break;
+                case SDLK_F11:
+                    loadSNA48k("roms/mig29.sna");
                     break;
                 default:
 				    checkKeys(event.key.keysym.sym, 1);
@@ -182,11 +193,37 @@ void checkEvents(){
 		}
 }
 
+int adevid;
+SDL_AudioSpec want, have;
+
+void initSound() {
+#ifdef SDL2
+    SDL_memset(&want, 0, sizeof(want));
+    want.freq = 48000;
+    want.format = AUDIO_U8;
+    want.channels = 1;
+    want.samples = abufSize;
+//    want.callback = MyAudioCallback;  // you wrote this function elsewhere.
+    adevid = SDL_OpenAudioDevice(NULL, 0, &want, &have, SDL_AUDIO_ALLOW_FORMAT_CHANGE);
+    SDL_PauseAudioDevice(adevid, 0);
+#endif
+}
+
+void pushSound() {
+#ifdef SDL2
+    baBuf->playBuffer ^= 1;
+    for(int i = 0; i < abufSize; i++) baBuf->aBuffer[baBuf->playBuffer ^ 1][i] = 128;
+    SDL_ClearQueuedAudio(adevid);
+    SDL_QueueAudio(adevid, baBuf->aBuffer[baBuf->playBuffer], abufSize-hmm);
+#endif
+}
+
 int emul_active = 0;
-Uint32 callback (Uint32 minterval, void* param) {
+Uint32 callback (Uint32 minterval, void* ) {
     if(!emul_active) {
         emul_active = 1;
 		zx48.emul();
+        pushSound();
 //        zx48.ShowZXscreenNormal();
         zx48.ShowZXscreen();
 #ifdef SDL2
@@ -203,7 +240,7 @@ Uint32 callback (Uint32 minterval, void* param) {
 }
 
 int main() {
-	if ( SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_JOYSTICK ) < 0 ) {
+    if ( SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_JOYSTICK|SDL_INIT_AUDIO ) < 0 ) {
 		fprintf(stderr, "Unable init SDL: %s\n", SDL_GetError());
 		exit(1);
 	}
@@ -242,6 +279,7 @@ int main() {
 #endif
     if(!timerID) fprintf(stderr, "timerID: %s\n", SDL_GetError());
 
+    initSound();
 //	Uint32 i = 50*60*60*24*366;
     while (true) {
 		checkEvents();

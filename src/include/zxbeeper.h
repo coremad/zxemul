@@ -2,15 +2,18 @@
 #define ZXBEEPER_H
 
 #include "zxports.h"
+//#include <stdio.h>
 
+#define beeper_bit 4
 #define beeper_bit_mask 0xa;
 
-#define bSetSampleRate 22050
-#define abufSize (bSetSampleRate/50)
+#define hmm 64
+#define bSetSampleRate 48000
+#define abufSize (bSetSampleRate/50 + hmm)
 
 struct TZXabuffer {
     byte * aBuffer[2];
-    uint playBuffer, bufpos;
+    int playBuffer, bufpos;
 };
 
 class TZXBeeper : public TZXport {
@@ -23,20 +26,30 @@ public:
         tbuffer = t;
         t->bufpos = b->playBuffer = t->playBuffer = 0;
         for(int i = 0; i < abufSize;i++) {
-            bbuffer->aBuffer[0][i] = 0x77;
-            bbuffer->aBuffer[1][i] = 0x77;
-            tbuffer->aBuffer[0][i] = 0x77;
-            tbuffer->aBuffer[1][i] = 0x77;
+//            bbuffer->aBuffer[0][i] = 0x77;
+//            bbuffer->aBuffer[1][i] = 0x77;
+//            tbuffer->aBuffer[0][i] = 0x77;
+//            tbuffer->aBuffer[1][i] = 0x77;
+            bbuffer->aBuffer[0][i] = 128;
+            bbuffer->aBuffer[1][i] = 128;
         }
     }
 
     virtual void outData(word, byte n) {
-        uint newpos = ((z80io->iTicksCounter*abufSize)/z80io->iTicks);
-        if (newpos < bbuffer->bufpos) bbuffer->bufpos =0;
-        for (uint i=bbuffer->bufpos; i < newpos; i++)
+        int newpos = ((z80io->iTicksCounter*(abufSize - hmm))/z80io->iTicks);
+        if (newpos < bbuffer->bufpos) {
+            for (int i = bbuffer->bufpos; i < abufSize; i++)
+                bbuffer->aBuffer[bbuffer->playBuffer][i] = portdata;
+            bbuffer->bufpos = 0;
+        }
+        for (int i = bbuffer->bufpos; i < newpos; i++)
             bbuffer->aBuffer[bbuffer->playBuffer ^ 1][i] = portdata;
-        portdata = (n >> 4)*0xff;
+        portdata = 128+((n >> beeper_bit)&1)*63;
         bbuffer->aBuffer[bbuffer->playBuffer ^ 1][newpos] = portdata;
+        for (int i = newpos; i < abufSize; i++)
+            bbuffer->aBuffer[bbuffer->playBuffer ^ 1][i] = portdata;
+        bbuffer->bufpos = newpos;
+//        fprintf(stderr, "%02x ", portdata);
     }
 
     virtual void reset() {

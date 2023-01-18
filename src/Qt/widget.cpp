@@ -5,6 +5,7 @@
 
 #include "zxemul.h"
 
+#include "bsound.h"
 
 Widget::Widget(QWidget *parent) : QWidget(parent) {
     setFixedSize(640, 480);
@@ -19,6 +20,7 @@ void Widget::animate() {
         zx48.emul();
         zx48.ShowZXscreen();
         emul_active = 0;
+        bsplay();
     } else fprintf(stderr, "skip frame");
     update();
 }

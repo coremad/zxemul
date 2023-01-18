@@ -4,13 +4,16 @@
 #include "zxemul.h"
 #include "fsnapshots.h"
 //#include "zxtape.h"
-//#include "bsound.h"
+#include "bsound.h"
 
 
 #include <QGridLayout>
 #include <QLabel>
 #include <QTimer>
 #include <QKeyEvent>
+
+QThread * thr1;
+QThread * thr2;
 
 Window::Window() {
     Widget *w = new Widget(this);
@@ -25,7 +28,9 @@ Window::Window() {
 
     zx48.init((std::uint32_t *)w->qi->bits());
     if (!loadROM48k("roms/48.rom")) close();
-//    bsinit();
+    thr1 = new QThread(this);
+    thr2 = new QThread(this);
+    bsinit();
 //    bsplay();
 
     this->layout()->setSizeConstraint(QLayout::SetFixedSize);
@@ -53,10 +58,19 @@ void Window::keyPressEvent(QKeyEvent *e) {
         loadSNA48k("roms/deathchase.sna");
         break;
     case Qt::Key_F7:
-        loadSNA48k("roms/dizzy3.sna");
+        loadSNA48k("roms/bdash.sna");
         break;
     case Qt::Key_F8:
-        loadSNA48k("roms/pacmania.sna");
+        loadSNA48k("roms/renegade.sna");
+        break;
+    case Qt::Key_F9:
+        loadSNA48k("roms/saboteur.sna");
+        break;
+    case Qt::Key_F10:
+        loadSNA48k("roms/mig29.sna");
+        break;
+    case Qt::Key_F11:
+        loadSNA48k("roms/darkf.sna");
         break;
 //#ifdef DEBUG
 //    case Qt::Key_F1:
