@@ -44,6 +44,19 @@ var str = 0;
 ctx.canvas.width  = width;
 ctx.canvas.height  = height;
 const importObject = { imports: { imported_func: arg => console.log(arg) } };
+
+    if (!window.AudioContext) {
+        if (!window.webkitAudioContext) {
+            alert("Your browser does not support any AudioContext and cannot play back this audio.");
+            return;
+        }
+        window.AudioContext = window.webkitAudioContext;
+    }
+    var actx = new AudioContext({
+      sampleRate: 48000,
+      latencyHint: "interactive",
+    });
+
 fetch("js/undead-zx.wasm?seed=" + Math.random())
   .then((response) => response.arrayBuffer())
   .then((bytes) => WebAssembly.instantiate(bytes))
@@ -101,7 +114,7 @@ fetch("js/undead-zx.wasm?seed=" + Math.random())
     };
 
     rlbutton.onclick = function() { str = 0; debug.innerHTML = ''; };
-//        canvas.addEventListener('click', event => pick(event));
+        canvas.addEventListener('click', event => pick(event));
     window.addEventListener('keydown', event => checkKeys(event), false);
     window.addEventListener('keyup', event => checkKeys(event), false);
 
@@ -170,6 +183,33 @@ fetch("js/undead-zx.wasm?seed=" + Math.random())
     ctx.fillStyle = "red";
     ctx.font = "16px mono";
 
+    var nosound = 1;
+    function pick(event) {
+        console.log(actx.state);
+        if (actx.state == 'suspended') {
+            actx.resume().then(() => {
+                console.log(actx.state);
+                nosound = 0;
+            });
+        } else nosound ^= 1;
+    }
+
+    function beeper() {
+        if (!nosound) {
+            var bufferSize = actx.sampleRate/50,
+            aBuffer = actx.createBuffer(1, bufferSize, actx.sampleRate),
+            output = aBuffer.getChannelData(0);
+            var cbuf = zx.swapABuf();
+            if (cbuf) for (var i = 0; i < bufferSize; i++) output[i] = (zx.abuf2[i]-128)/63
+            else for (var i = 0; i < bufferSize; i++) output[i] = (zx.abuf1[i]-128)/63;
+            var aSource = actx.createBufferSource();
+            aSource.buffer = aBuffer;
+            aSource.loop = false;
+            aSource.start(0);
+            aSource.connect(actx.destination);
+        }
+    }
+
     function go() {
         if (zx.emul_active || !zx.emul_ready) {
             console.log("skip frame");
@@ -178,12 +218,14 @@ fetch("js/undead-zx.wasm?seed=" + Math.random())
         const start = performance.now();
         zx.emul_active = 1;
         zx.emul();
+        beeper();
         ctx.putImageData(zx.myImageData, 0, 0);
         if (DEBUG) {
             var hstr = '';
             hstr = "IFF: " + zx.iff1state() + " IM: " + zx.imstate() + " IR: " + toHex(zx.irstate());
             if (zx.haltstate()) hstr += ' HALT';
             ctx.fillText(hstr, 2, 16);
+            if(nosound) ctx.fillText("SOUND: OFF", 540, 16);
             const timeTaken = (performance.now() - start);
             html_fps.innerHTML = timeTaken.toFixed(2);
             var regs = " PC: " + toHex(zx.z80[0])
@@ -201,6 +243,7 @@ fetch("js/undead-zx.wasm?seed=" + Math.random())
                 str++;
             }
         }
+
         zx.emul_active = 0;
     }
 
@@ -211,9 +254,6 @@ fetch("js/undead-zx.wasm?seed=" + Math.random())
             clearInterval(pause.intervalID);
             ctx.fillText("PAUSED", 2, height - 16);
         }
-    }
-
-    function pick(event) {
     }
 
     function reset() {
@@ -251,9 +291,12 @@ class TZX {
         this.opcode = ws.exports.opcode;
         this.initSNA48k = ws.exports.initSNA48k;
         this.dumpSNA48k = ws.exports.dumpSNA48k;
+        this.swapABuf = ws.exports.swapABuf;
         this.bTime = new Uint8Array(this.buffer, ws.exports.getBTime(), 9);
         this.bDate = new Uint8Array(this.buffer, ws.exports.getBDate(), 12);
         this.zxmem = new Uint8Array(this.buffer, ws.exports.pzxmem(), 65536);
+        this.abuf1 = new Uint8Array(this.buffer, ws.exports.babuffer1, 1024);
+        this.abuf2 = new Uint8Array(this.buffer, ws.exports.babuffer2, 1024);
         this.z80 = new Uint16Array(this.buffer, ws.exports.z80, 64);
         this.sna = new Uint8Array(this.buffer, ws.exports.SNA, 27);
 //        this.ZXKeyboard = new Uint8Array(this.buffer, ws.exports.pZXKeyboard(), 8);;

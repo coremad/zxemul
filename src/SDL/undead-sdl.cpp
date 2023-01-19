@@ -2,7 +2,7 @@
 #include <stdint.h>
 #ifdef SDL2
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_mixer.h>
+//#include <SDL2/SDL_mixer.h>
 #else
 #include <SDL/SDL.h>
 #endif

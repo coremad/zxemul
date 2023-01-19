@@ -72,6 +72,12 @@ uint32_t vbuf[640*480*4];
       return bDate;
     }
 
+    int swapABuf() {
+        for (int i=0; i< abufSize; i++) baBuf->aBuffer[baBuf->playBuffer][i] = 128;
+        baBuf->playBuffer ^= 1;
+        return baBuf->playBuffer;
+    };
+
 //    void startTape() {
 //        initTape(z80io.tickCounter);
 //    }
