@@ -9,4 +9,4 @@ WEB version can be build with Clang or Emscripten
 
 WEB version test(for modern desktop browsers, Firefox, Chrome, Opera, etc):
 
- https://zx.madcore.fun/ 
+ https://zx.madcore.pro/ 
